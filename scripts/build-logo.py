@@ -111,9 +111,15 @@ def main():
     # --- injection dans index.html ----------------------------------------
     # Deux groupes : la couronne d'un côté, le cœur de l'autre. Ils tournent
     # en sens opposé (voir .lg-outer / .lg-inner dans css/style.css).
+    # Chaque pièce est enveloppée dans un <g class="gp"> : le groupe porte le
+    # glitch, le <path> porte l'assemblage d'ouverture. Deux calques séparés,
+    # sinon les deux animations se disputent la même propriété transform.
+    # --dx / --dy / --i sont posés sur le groupe : les variables CSS héritent,
+    # le path les récupère donc sans qu'on ait à les répéter.
     def tag(p, n):
-        return ('          <path class="lp" id="lp-%s" style="--dx:%s;--dy:%s;--i:%d" d="%s"/>'
-                % (p["id"], p["dx"], p["dy"], n, p["d"]))
+        return ('          <g class="gp" style="--dx:%s;--dy:%s;--i:%d">'
+                '<path class="lp" id="lp-%s" d="%s"/></g>'
+                % (p["dx"], p["dy"], n, p["id"], p["d"]))
 
     inline = ['        <g class="lg-outer">']
     inline += [tag(p, n) for n, p in enumerate(pieces) if p["id"] == "ring"]

@@ -24,6 +24,9 @@
 
   /* Rotation continue de la couronne du sceau */
   --spin-outer: 9s;
+
+  /* Cycle : couronne qui s'efface → cœur qui déraille → tout revient */
+  --cycle: 8s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -190,20 +193,95 @@ body {
   overflow: visible;
 }
 
-/* Seule la couronne tourne — ses trois flèches ont une symétrie d'ordre 3,
-   la rotation reste donc lisible à n'importe quel angle. Le cœur reste fixe :
-   le faire tourner aussi désaligne les deux couches et le sceau paraît cassé.
-   Le délai laisse l'assemblage se terminer avant la mise en rotation. */
+/* La couronne porte DEUX animations en parallèle : la rotation (transform) et
+   le clignotement du cycle (opacity). Elles ne touchent pas la même propriété,
+   donc elles cohabitent — et la couronne continue de tourner pendant qu'elle
+   est invisible : à sa réapparition elle est déjà à un autre angle.
+   Le cœur reste fixe : le faire tourner désaligne les deux couches et le
+   sceau paraît cassé plutôt qu'en mouvement. */
 .lg-outer {
   transform-box: view-box;
   transform-origin: center;
-  animation: spin var(--spin-outer) linear infinite;
-  animation-delay: var(--intro);
+  animation:
+    spin         var(--spin-outer) linear         infinite,
+    crownFlicker var(--cycle)      steps(1, end)  infinite;
 }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* Coupure franche, pas de fondu : le sceau saute, il ne s'estompe pas.
+   Deux clignements courts à l'aller, deux au retour — l'absence dure ~1 s. */
+@keyframes crownFlicker {
+  0%,  61%  { opacity: 1;  }
+  62%       { opacity: 0;  }
+  63%       { opacity: .7; }
+  64%, 74%  { opacity: 0;  }
+  75%       { opacity: .6; }
+  76%       { opacity: 0;  }
+  77%, 100% { opacity: 1;  }
+}
+
+/* ---- déraillement du cœur --------------------------------------------- */
+
+/* Le groupe porte le glitch, le <path> qu'il contient porte l'assemblage
+   d'ouverture. Deux calques, sinon les deux se disputent transform. */
+.gp {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Le cœur est très légèrement rétréci pour dégager un jour permanent entre
+   ses pointes et l'anneau. Sans ça, dès qu'une flèche de la couronne passe
+   devant une pointe de l'hexagone, les deux blancs se rejoignent à travers
+   l'anneau et le sceau se lit comme une seule masse. */
+.lg-inner {
+  transform-box: view-box;
+  transform-origin: center;
+  transform: scale(.93);
+}
+
+.lg-inner .gp {
+  animation: coreGlitchA var(--cycle) steps(1, end) infinite;
+}
+
+/* Trois variantes réparties sur les pièces pour que rien ne bouge ensemble */
+.lg-inner .gp:nth-child(3n+1) { animation-name: coreGlitchB; }
+.lg-inner .gp:nth-child(3n+2) { animation-name: coreGlitchC; }
+
+/* Déplacements volontairement courts (viewBox de 1000 : 20 px ≈ 2 %) et
+   rotations faibles. On cherche un décrochage électronique, pas une
+   explosion : le sceau doit rester lisible pendant tout le passage. */
+@keyframes coreGlitchA {
+  0%,  61%  { transform: none; opacity: 1; }
+  62%  { transform: translate(calc(var(--dx) * 22px), calc(var(--dy) * 22px)) rotate(2deg); }
+  65%  { transform: translate(-16px, 6px); opacity: .55; }
+  68%  { transform: translate(calc(var(--dx) * -13px), 3px) rotate(-3deg); opacity: 1; }
+  71%  { transform: translate(9px, -8px); opacity: .3; }
+  74%  { transform: translate(calc(var(--dx) * 28px), calc(var(--dy) * 9px)) rotate(4deg); opacity: 1; }
+  77%, 100% { transform: none; opacity: 1; }
+}
+
+@keyframes coreGlitchB {
+  0%,  61%  { transform: none; opacity: 1; }
+  62%  { transform: translate(15px, -10px) rotate(-3deg); opacity: .7; }
+  65%  { transform: translate(calc(var(--dx) * -24px), calc(var(--dy) * 5px)); opacity: 1; }
+  68%  { transform: translate(3px, 17px) rotate(4deg); opacity: .35; }
+  71%  { transform: translate(calc(var(--dx) * 10px), calc(var(--dy) * -18px)); opacity: 1; }
+  74%  { transform: translate(-12px, -4px) rotate(-5deg); opacity: .6; }
+  77%, 100% { transform: none; opacity: 1; }
+}
+
+@keyframes coreGlitchC {
+  0%,  61%  { transform: none; opacity: 1; }
+  62%  { transform: translate(-8px, 13px); opacity: 1; }
+  65%  { transform: translate(calc(var(--dx) * 18px), calc(var(--dy) * -15px)) rotate(4deg); opacity: .4; }
+  68%  { transform: translate(12px, 3px) rotate(-2deg); opacity: 1; }
+  71%  { transform: translate(calc(var(--dx) * -27px), calc(var(--dy) * -6px)); opacity: .65; }
+  74%  { transform: translate(-2px, -16px) rotate(5deg); opacity: 1; }
+  77%, 100% { transform: none; opacity: 1; }
 }
 
 /* Le sceau s'assemble UNE FOIS à l'ouverture, puis ne bouge plus.
@@ -216,8 +294,9 @@ body {
   animation-delay: calc(var(--i) * .055s);
 }
 
-.lp:nth-child(odd)  { --rot:  14deg; }
-.lp:nth-child(even) { --rot: -14deg; }
+/* Chaque path est seul dans son .gp : c'est le groupe qu'on alterne. */
+.gp:nth-child(odd)  { --rot:  14deg; }
+.gp:nth-child(even) { --rot: -14deg; }
 
 /* L'anneau ne s'éclate pas : il pivote et se referme sur le reste. */
 #lp-ring {
@@ -242,8 +321,21 @@ body {
 
 /* ---- verrouillage à 100 % --------------------------------------------- */
 
-/* Plus rien ne tourne : le chargement est terminé. */
-body.is-ready .lg-outer { animation-play-state: paused; }
+/* Plus de cycle, plus de rotation : le sceau se cale droit et net.
+   !important est nécessaire — sans lui l'animation garderait la main sur
+   opacity et la couronne resterait invisible si le cycle s'arrête pendant
+   sa phase d'effacement. */
+body.is-ready .lg-outer {
+  animation: none;
+  opacity: 1 !important;
+  transition: transform .45s cubic-bezier(.2, .8, .3, 1);
+}
+
+body.is-ready .lg-inner .gp {
+  animation: none;
+  transform: none;
+  opacity: 1;
+}
 
 body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both; }
 
@@ -351,7 +443,7 @@ body.is-preview::after {
 
 /* Respecte le réglage système de réduction des animations */
 @media (prefers-reduced-motion: reduce) {
-  .lp, #lp-ring, .wave span { animation: none; }
-  .lp, #lp-ring { opacity: 1; transform: none; }
-  .lg-outer { animation-duration: 50s; }
+  .lp, #lp-ring, .wave span, .lg-inner .gp { animation: none; }
+  .lp, #lp-ring, .lg-inner .gp { opacity: 1; transform: none; }
+  .lg-outer { animation: spin 50s linear infinite; opacity: 1; }
 }
