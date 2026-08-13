@@ -22,11 +22,9 @@
   --intro:  .9s;
   --spread: 210px;   /* écartement de départ des pièces */
 
-  /* Rotation continue de la couronne du sceau */
-  --spin-outer: 9s;
-
-  /* Cycle : couronne qui s'efface → cœur qui déraille → tout revient */
-  --cycle: 8s;
+  /* Cycle : cœur qui sort → couronne qui pivote de 120° → cœur qui revient.
+     La couronne ne tourne jamais tant que le cœur est en place. */
+  --cycle: 7s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -193,35 +191,23 @@ body {
   overflow: visible;
 }
 
-/* La couronne porte DEUX animations en parallèle : la rotation (transform) et
-   le clignotement du cycle (opacity). Elles ne touchent pas la même propriété,
-   donc elles cohabitent — et la couronne continue de tourner pendant qu'elle
-   est invisible : à sa réapparition elle est déjà à un autre angle.
-   Le cœur reste fixe : le faire tourner désaligne les deux couches et le
-   sceau paraît cassé plutôt qu'en mouvement. */
+/* La couronne ne tourne QUE pendant que le cœur est sorti. Tant que les deux
+   couches sont visibles ensemble, elle reste immobile : c'est ce qui évitait
+   le frottement des flèches contre les pointes de l'hexagone.
+   Elle tourne de 120° exactement — sa symétrie d'ordre 3 fait que 120° et 0°
+   sont visuellement identiques, donc le retour à 0° au bouclage ne se voit
+   pas et le sceau se reforme toujours dans son orientation d'origine. */
 .lg-outer {
   transform-box: view-box;
   transform-origin: center;
-  animation:
-    spin         var(--spin-outer) linear         infinite,
-    crownFlicker var(--cycle)      steps(1, end)  infinite;
+  animation: crownTurn var(--cycle) infinite;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-/* Coupure franche, pas de fondu : le sceau saute, il ne s'estompe pas.
-   Deux clignements courts à l'aller, deux au retour — l'absence dure ~1 s. */
-@keyframes crownFlicker {
-  0%,  61%  { opacity: 1;  }
-  62%       { opacity: 0;  }
-  63%       { opacity: .7; }
-  64%, 74%  { opacity: 0;  }
-  75%       { opacity: .6; }
-  76%       { opacity: 0;  }
-  77%, 100% { opacity: 1;  }
+@keyframes crownTurn {
+  0%   { transform: rotate(0deg); }
+  45%  { transform: rotate(0deg); animation-timing-function: cubic-bezier(.62, 0, .3, 1); }
+  68%  { transform: rotate(120deg); }
+  100% { transform: rotate(120deg); }
 }
 
 /* ---- déraillement du cœur --------------------------------------------- */
@@ -233,55 +219,55 @@ body {
   transform-origin: center;
 }
 
-/* Le cœur est très légèrement rétréci pour dégager un jour permanent entre
-   ses pointes et l'anneau. Sans ça, dès qu'une flèche de la couronne passe
-   devant une pointe de l'hexagone, les deux blancs se rejoignent à travers
-   l'anneau et le sceau se lit comme une seule masse. */
-.lg-inner {
-  transform-box: view-box;
-  transform-origin: center;
-  transform: scale(.93);
-}
-
+/* Le cœur sort de scène pour libérer la rotation, puis revient. Il n'est plus
+   rétréci : la couronne ne tourne jamais en sa présence, donc le jour
+   artificiel entre les pointes et l'anneau n'a plus lieu d'être et le logo
+   garde ses proportions d'origine. */
 .lg-inner .gp {
-  animation: coreGlitchA var(--cycle) steps(1, end) infinite;
+  animation: coreCycleA var(--cycle) steps(1, end) infinite;
 }
 
 /* Trois variantes réparties sur les pièces pour que rien ne bouge ensemble */
-.lg-inner .gp:nth-child(3n+1) { animation-name: coreGlitchB; }
-.lg-inner .gp:nth-child(3n+2) { animation-name: coreGlitchC; }
+.lg-inner .gp:nth-child(3n+1) { animation-name: coreCycleB; }
+.lg-inner .gp:nth-child(3n+2) { animation-name: coreCycleC; }
 
-/* Déplacements volontairement courts (viewBox de 1000 : 20 px ≈ 2 %) et
-   rotations faibles. On cherche un décrochage électronique, pas une
-   explosion : le sceau doit rester lisible pendant tout le passage. */
-@keyframes coreGlitchA {
-  0%,  61%  { transform: none; opacity: 1; }
-  62%  { transform: translate(calc(var(--dx) * 22px), calc(var(--dy) * 22px)) rotate(2deg); }
-  65%  { transform: translate(-16px, 6px); opacity: .55; }
-  68%  { transform: translate(calc(var(--dx) * -13px), 3px) rotate(-3deg); opacity: 1; }
-  71%  { transform: translate(9px, -8px); opacity: .3; }
-  74%  { transform: translate(calc(var(--dx) * 28px), calc(var(--dy) * 9px)) rotate(4deg); opacity: 1; }
-  77%, 100% { transform: none; opacity: 1; }
+/* Sortie brève (37→43 %), absence pendant toute la rotation (43→71 %),
+   retour bref (73→79 %). Déplacements volontairement courts — viewBox de
+   1000, donc 20 px ≈ 2 % de la largeur : un décrochage, pas une explosion. */
+@keyframes coreCycleA {
+  0%,  36%  { transform: none; opacity: 1; }
+  37%  { transform: translate(calc(var(--dx) * 20px), calc(var(--dy) * 20px)); opacity: .6; }
+  39%  { transform: translate(-14px, 6px); opacity: 1; }
+  41%  { transform: translate(calc(var(--dx) * 26px), -7px) rotate(3deg); opacity: .35; }
+  43%, 71% { transform: none; opacity: 0; }
+  73%  { transform: translate(calc(var(--dx) * -22px), calc(var(--dy) * 8px)); opacity: .5; }
+  75%  { transform: translate(11px, -9px) rotate(-3deg); opacity: 1; }
+  77%  { transform: translate(calc(var(--dx) * 14px), 5px); opacity: .7; }
+  79%, 100% { transform: none; opacity: 1; }
 }
 
-@keyframes coreGlitchB {
-  0%,  61%  { transform: none; opacity: 1; }
-  62%  { transform: translate(15px, -10px) rotate(-3deg); opacity: .7; }
-  65%  { transform: translate(calc(var(--dx) * -24px), calc(var(--dy) * 5px)); opacity: 1; }
-  68%  { transform: translate(3px, 17px) rotate(4deg); opacity: .35; }
-  71%  { transform: translate(calc(var(--dx) * 10px), calc(var(--dy) * -18px)); opacity: 1; }
-  74%  { transform: translate(-12px, -4px) rotate(-5deg); opacity: .6; }
-  77%, 100% { transform: none; opacity: 1; }
+@keyframes coreCycleB {
+  0%,  36%  { transform: none; opacity: 1; }
+  37%  { transform: translate(13px, -9px) rotate(-3deg); opacity: 1; }
+  39%  { transform: translate(calc(var(--dx) * -24px), calc(var(--dy) * 6px)); opacity: .5; }
+  41%  { transform: translate(4px, 15px); opacity: .3; }
+  43%, 71% { transform: none; opacity: 0; }
+  73%  { transform: translate(9px, 12px) rotate(4deg); opacity: .45; }
+  75%  { transform: translate(calc(var(--dx) * -16px), calc(var(--dy) * -10px)); opacity: 1; }
+  77%  { transform: translate(-8px, 4px); opacity: .8; }
+  79%, 100% { transform: none; opacity: 1; }
 }
 
-@keyframes coreGlitchC {
-  0%,  61%  { transform: none; opacity: 1; }
-  62%  { transform: translate(-8px, 13px); opacity: 1; }
-  65%  { transform: translate(calc(var(--dx) * 18px), calc(var(--dy) * -15px)) rotate(4deg); opacity: .4; }
-  68%  { transform: translate(12px, 3px) rotate(-2deg); opacity: 1; }
-  71%  { transform: translate(calc(var(--dx) * -27px), calc(var(--dy) * -6px)); opacity: .65; }
-  74%  { transform: translate(-2px, -16px) rotate(5deg); opacity: 1; }
-  77%, 100% { transform: none; opacity: 1; }
+@keyframes coreCycleC {
+  0%,  36%  { transform: none; opacity: 1; }
+  37%  { transform: translate(-7px, 12px); opacity: .8; }
+  39%  { transform: translate(calc(var(--dx) * 18px), calc(var(--dy) * -14px)) rotate(4deg); opacity: 1; }
+  41%  { transform: translate(10px, 3px) rotate(-2deg); opacity: .3; }
+  43%, 71% { transform: none; opacity: 0; }
+  73%  { transform: translate(calc(var(--dx) * 24px), calc(var(--dy) * 7px)); opacity: .55; }
+  75%  { transform: translate(-6px, -13px); opacity: 1; }
+  77%  { transform: translate(calc(var(--dx) * -11px), 6px) rotate(3deg); opacity: .65; }
+  79%, 100% { transform: none; opacity: 1; }
 }
 
 /* Le sceau s'assemble UNE FOIS à l'ouverture, puis ne bouge plus.
@@ -443,7 +429,6 @@ body.is-preview::after {
 
 /* Respecte le réglage système de réduction des animations */
 @media (prefers-reduced-motion: reduce) {
-  .lp, #lp-ring, .wave span, .lg-inner .gp { animation: none; }
-  .lp, #lp-ring, .lg-inner .gp { opacity: 1; transform: none; }
-  .lg-outer { animation: spin 50s linear infinite; opacity: 1; }
+  .lp, #lp-ring, .wave span, .lg-inner .gp, .lg-outer { animation: none; }
+  .lp, #lp-ring, .lg-inner .gp, .lg-outer { opacity: 1; transform: none; }
 }
