@@ -1,0 +1,194 @@
+/* ==========================================================================
+   SCP Atlas — Loading screen
+   Base neutre et volontairement sobre : le design final se construit ici.
+   Variables en haut = seul endroit à toucher pour changer l'identité.
+   ========================================================================== */
+
+:root {
+  --c-bg:        #07090c;
+  --c-surface:   rgba(255, 255, 255, .04);
+  --c-border:    rgba(255, 255, 255, .10);
+  --c-text:      #e9edf2;
+  --c-muted:     #7d8794;
+  --c-accent:    #c0392b;
+  --c-accent-2:  #e74c3c;
+
+  --font-display: 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
+  --font-body:    'Segoe UI', system-ui, sans-serif;
+
+  --pad: clamp(24px, 4vw, 64px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------ fond */
+
+.bg {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 0%, #131a22 0%, #07090c 65%);
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(7, 9, 12, .55) 0%, rgba(7, 9, 12, .15) 40%, rgba(7, 9, 12, .92) 100%);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- structure */
+
+.screen {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: var(--pad);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 24px;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.logo span { color: var(--c-accent-2); }
+
+.hostname {
+  color: var(--c-muted);
+  font-size: 14px;
+  letter-spacing: .04em;
+}
+
+/* ------------------------------------------------------------------ centre */
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.tips {
+  max-width: 620px;
+  padding: 20px 24px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-left: 2px solid var(--c-accent);
+  border-radius: 4px;
+}
+
+.tips-label {
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--c-accent-2);
+  margin-bottom: 8px;
+}
+
+.tips-text {
+  font-size: 17px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+.tips-text.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------- footer */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status {
+  font-size: 15px;
+  letter-spacing: .02em;
+}
+
+.bar {
+  position: relative;
+  height: 4px;
+  background: rgba(255, 255, 255, .08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--c-accent), var(--c-accent-2));
+  border-radius: 2px;
+  transition: width .1s linear;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.meta-sep { opacity: .4; }
+.meta-spacer { flex: 1 1 auto; }
+
+/* --------------------------------------------------------------- preview */
+/* Badge visible uniquement hors du jeu, pour ne pas confondre les deux modes */
+
+body.is-preview::after {
+  content: 'PREVIEW NAVIGATEUR — données simulées';
+  position: fixed;
+  z-index: 10;
+  top: 12px;
+  right: 12px;
+  padding: 5px 10px;
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: #ffd479;
+  background: rgba(255, 190, 60, .10);
+  border: 1px solid rgba(255, 190, 60, .35);
+  border-radius: 3px;
+}

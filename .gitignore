@@ -1,0 +1,15 @@
+# OS / éditeurs
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# Outils locaux
+node_modules/
+.claude/
+
+# Serveur GMod local (jamais versionné : plusieurs Go + clés)
+server/
+steamcmd/
+*.gma

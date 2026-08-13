@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCP Atlas — Chargement</title>
+<link rel="preconnect" href="">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Couche fond (image / video / canvas) -->
+  <div class="bg" id="bg"></div>
+  <div class="bg-overlay"></div>
+
+  <!-- Contenu principal -->
+  <main class="screen">
+
+    <header class="head">
+      <div class="logo" id="logo">SCP <span>ATLAS</span></div>
+      <div class="hostname" id="hostname">Connexion au serveur…</div>
+    </header>
+
+    <section class="center">
+      <div class="tips">
+        <div class="tips-label">Astuce</div>
+        <div class="tips-text" id="tip">Chargement…</div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="status" id="status">Initialisation…</div>
+
+      <div class="bar">
+        <div class="bar-fill" id="bar-fill"></div>
+      </div>
+
+      <div class="meta">
+        <span id="progress-text">0%</span>
+        <span class="meta-sep">•</span>
+        <span id="file">—</span>
+        <span class="meta-spacer"></span>
+        <span id="map">—</span>
+        <span class="meta-sep">•</span>
+        <span id="gamemode">—</span>
+        <span class="meta-sep">•</span>
+        <span id="players">—</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <script src="js/gmod.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
