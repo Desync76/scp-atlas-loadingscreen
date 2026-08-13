@@ -9,14 +9,28 @@ Loading screen web du serveur GMod **SCP Atlas**, hébergé sur GitHub Pages.
 ## Structure
 
 ```
-index.html          page du loading screen
+index.html          page du loading screen (contient le logo SVG inline)
 css/style.css       tout le design (variables en haut du fichier)
 js/gmod.js          pont avec le moteur GMod (ne pas renommer les globales)
 js/config.js        réglages : tips, fond, musique, fallbacks
 js/main.js          logique d'affichage
-assets/             img / fonts / audio
+assets/img/logo.svg logo vectorisé, version statique autonome
+assets/img/logo_source.png   source du logo (sert à régénérer le SVG)
 gmod/server.cfg     config du serveur de test (source de vérité)
-scripts/            scripts PowerShell
+scripts/            scripts PowerShell + build-logo.py
+```
+
+## Régénérer le logo
+
+Seulement si `assets/img/logo_source.png` change. Réécrit `assets/img/logo.svg`
+et le bloc `<!-- logo:start -->` … `<!-- logo:end -->` de `index.html`.
+
+```bash
+pip install opencv-python numpy pillow
+```
+
+```bash
+python scripts/build-logo.py
 ```
 
 ---

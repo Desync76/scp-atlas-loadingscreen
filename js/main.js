@@ -137,6 +137,8 @@
 
   var displayed = 0;
   var target = 0;
+  var lastSpread = -1;
+  var locked = false;
 
   (function tick() {
     displayed += (target - displayed) * 0.12;
@@ -144,6 +146,20 @@
 
     el.ring.style.strokeDashoffset = (RING_C * (1 - displayed)).toFixed(1);
     el.progress.textContent = Math.round(displayed * 100) + ' %';
+
+    // Plus le chargement avance, moins le logo se disperse : le confinement
+    // se resserre. SPREAD_MAX → SPREAD_MIN en unités du viewBox du logo.
+    var spread = Math.round(330 - displayed * 230);
+    if (spread !== lastSpread) {
+      lastSpread = spread;
+      document.documentElement.style.setProperty('--spread', spread + 'px');
+    }
+
+    // À 100 %, le logo se fige assemblé et l'écran marque le verrouillage.
+    if (!locked && target >= 0.999) {
+      locked = true;
+      document.body.classList.add('is-ready');
+    }
 
     requestAnimationFrame(tick);
   })();
@@ -217,7 +233,7 @@
         'materials/atlas/aile_z_panneau.vmt'
       ];
 
-      window.GameDetails('SCP Atlas', '', 'rp_zone_atlas', 64, '', 'Zone Atlas');
+      window.GameDetails('SCP Atlas', '', 'rp_zone_atlas', 64, '', 'Confinement RP');
 
       var total = 140, needed = 140, i = 0;
       var iv = setInterval(function () {

@@ -1,8 +1,6 @@
 /* ==========================================================================
    SCP Atlas — Loading screen
-   Disposition inspirée d'un écran de chargement minimal : noir plein,
-   texte blanc, condensé en capitales, anneaux au centre.
-
+   Noir plein, blanc, condensé en capitales. Logo vectoriel animé au centre.
    Tout se règle depuis les variables ci-dessous.
    ========================================================================== */
 
@@ -18,9 +16,11 @@
 
   --pad: clamp(22px, 2.6vw, 46px);
 
-  --ring-size: clamp(190px, 22vw, 330px);
-  --ring-speed-out: 2.8s;
-  --ring-speed-in:  3.6s;
+  --ring-size: clamp(200px, 24vw, 350px);
+
+  /* Animation du logo */
+  --cycle:  7s;      /* durée d'un cycle décomposition → recomposition */
+  --spread: 330px;   /* écartement des pièces — piloté par main.js */
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -90,7 +90,6 @@ body {
   margin-top: 3px;
   font-family: var(--font-display);
   font-size: clamp(13px, 1.05vw, 17px);
-  font-weight: 400;
   letter-spacing: .06em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, .82);
@@ -100,7 +99,6 @@ body {
   margin-top: 2px;
   font-family: var(--font-display);
   font-size: clamp(11px, .85vw, 14px);
-  font-weight: 400;
   letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--c-dim);
@@ -154,9 +152,7 @@ body {
   padding: 3px 11px;
   border-radius: 20px;
   background: var(--c-surface);
-  font-family: var(--font-body);
   font-size: 12.5px;
-  font-weight: 400;
   letter-spacing: .01em;
   color: rgba(255, 255, 255, .72);
   white-space: nowrap;
@@ -174,7 +170,7 @@ body {
   50%      { opacity: .3; transform: scale(.7); }
 }
 
-/* ------------------------------------------------------------ anneaux */
+/* ============================================================ centre : logo */
 
 .loader {
   position: absolute;
@@ -184,25 +180,39 @@ body {
   transform: translateY(-4vh);
 }
 
-.spinner {
-  width: var(--ring-size);
-  height: var(--ring-size);
-  fill: none;
+.loader > svg {
+  grid-area: 1 / 1;      /* les deux SVG se superposent */
   overflow: visible;
 }
 
-.spinner circle {
+/* ---- anneau de progression ------------------------------------------- */
+
+.ring {
+  width: var(--ring-size);
+  height: var(--ring-size);
+  fill: none;
+}
+
+.ring circle {
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.s-track {
+.r-track {
   stroke: rgba(255, 255, 255, .07);
   stroke-width: 1.5;
 }
 
-/* Anneau de progression réelle — r=101 → circonférence 634.6 */
-.s-progress {
+/* Balayage lent — garde l'écran vivant pendant la phase de maintien */
+.r-scan {
+  stroke: rgba(255, 255, 255, .22);
+  stroke-width: 1;
+  stroke-dasharray: 2 14;
+  animation: spin 26s linear infinite;
+}
+
+/* Progression réelle — r=101 → circonférence 634.6 (voir main.js) */
+.r-progress {
   stroke: #fff;
   stroke-width: 1.5;
   stroke-linecap: round;
@@ -212,27 +222,113 @@ body {
   transition: stroke-dashoffset .25s linear;
 }
 
-.s-arc {
-  stroke: #fff;
-  stroke-width: 11;
-  stroke-linecap: round;
-}
-
-/* r=80 → 502.6 · arc d'environ 200° */
-.s-arc--out {
-  stroke-dasharray: 279 224;
-  animation: spin var(--ring-speed-out) cubic-bezier(.45, .05, .55, .95) infinite;
-}
-
-/* r=56 → 351.9 · arc d'environ 200°, sens inverse */
-.s-arc--in {
-  stroke-dasharray: 195 157;
-  animation: spin var(--ring-speed-in) cubic-bezier(.45, .05, .55, .95) infinite reverse;
-}
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ---- logo ------------------------------------------------------------- */
+
+.logo {
+  width:  calc(var(--ring-size) * .74);
+  height: calc(var(--ring-size) * .74);
+  color: var(--c-text);
+}
+
+.logo-parts {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: logoGlitch var(--cycle) steps(1, end) infinite;
+}
+
+/* Chaque pièce porte --dx / --dy (sa direction d'éclatement, calculée par
+   scripts/build-logo.py) et --i (son rang dans l'assemblage). */
+.lp {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pieceCycle var(--cycle) infinite;
+  animation-delay: calc(var(--i) * .07s);
+}
+
+.lp:nth-child(odd)  { --rot:  16deg; }
+.lp:nth-child(even) { --rot: -16deg; }
+
+/* L'anneau ne s'éclate pas : il pivote et se resserre autour du reste. */
+#lp-ring {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: ringCycle var(--cycle) infinite;
+}
+
+@keyframes pieceCycle {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * var(--spread)), calc(var(--dy) * var(--spread)))
+               rotate(var(--rot)) scale(.72);
+    animation-timing-function: cubic-bezier(.14, .8, .28, 1);
+  }
+  10% { opacity: 1; }
+  22% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1.05);
+    animation-timing-function: cubic-bezier(.3, 0, .2, 1);
+  }
+  28% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  68% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    animation-timing-function: cubic-bezier(.7, 0, .9, .2);
+  }
+  90%, 100% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * var(--spread)), calc(var(--dy) * var(--spread)))
+               rotate(calc(var(--rot) * -1)) scale(.72);
+  }
+}
+
+@keyframes ringCycle {
+  0% {
+    opacity: 0;
+    transform: rotate(-45deg) scale(1.22);
+    animation-timing-function: cubic-bezier(.14, .8, .28, 1);
+  }
+  8%  { opacity: .5; }
+  22% { opacity: 1; transform: rotate(0deg) scale(1); }
+  68% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    animation-timing-function: cubic-bezier(.7, 0, .9, .2);
+  }
+  90%, 100% { opacity: 0; transform: rotate(45deg) scale(1.22); }
+}
+
+/* Micro-instabilité pendant la phase assemblée */
+@keyframes logoGlitch {
+  0%, 40%   { transform: none;             opacity: 1;   }
+  41%       { transform: translateX(-7px); opacity: .65; }
+  42%       { transform: translateX(6px);  opacity: 1;   }
+  43%, 56%  { transform: none;             opacity: 1;   }
+  57%       { transform: translateX(4px);  opacity: .8;  }
+  58%, 100% { transform: none;             opacity: 1;   }
+}
+
+/* ---- verrouillage à 100 % --------------------------------------------- */
+
+body.is-ready .lp,
+body.is-ready #lp-ring,
+body.is-ready .logo-parts {
+  animation: none;
+  transform: none;
+  opacity: 1;
+}
+
+body.is-ready .logo {
+  animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
+}
+
+@keyframes lockFlash {
+  0%   { transform: scale(1.07); filter: drop-shadow(0 0 26px rgba(255, 255, 255, .95)); }
+  100% { transform: scale(1);    filter: drop-shadow(0 0 0   rgba(255, 255, 255, 0));    }
 }
 
 /* --------------------------------------------------------- bas : mot animé */
@@ -248,7 +344,6 @@ body {
 .wave {
   font-family: var(--font-display);
   font-size: clamp(16px, 1.35vw, 22px);
-  font-weight: 400;
   letter-spacing: .09em;
   text-transform: uppercase;
   height: 1.6em;
@@ -284,7 +379,7 @@ body {
   background: currentColor;
 }
 
-/* -------------------------------------------------------- bas : astuce */
+/* ------------------------------------------------------------ bas : astuce */
 
 .tip {
   position: absolute;
@@ -302,11 +397,10 @@ body {
 }
 
 .tip-text {
-  font-family: var(--font-body);
   font-size: clamp(14px, 1.02vw, 17px);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.45;
-  color: rgba(255, 255, 255, .88);
+  color: rgba(255, 255, 255, .94);
   opacity: 0;
   transform: translateY(5px);
   transition: opacity .4s ease, transform .4s ease;
@@ -317,7 +411,7 @@ body {
   transform: none;
 }
 
-/* ---------------------------------------------------------- preview */
+/* ----------------------------------------------------------------- preview */
 
 body.is-preview::after {
   content: 'PREVIEW NAVIGATEUR — DONNÉES SIMULÉES';
@@ -332,4 +426,10 @@ body.is-preview::after {
   color: rgba(255, 255, 255, .5);
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 3px;
+}
+
+/* Respecte le réglage système de réduction des animations */
+@media (prefers-reduced-motion: reduce) {
+  .lp, #lp-ring, .logo-parts, .r-scan, .wave span { animation: none; }
+  .lp, #lp-ring { opacity: 1; transform: none; }
 }
