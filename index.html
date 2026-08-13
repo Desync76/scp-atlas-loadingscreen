@@ -4,49 +4,56 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SCP Atlas — Chargement</title>
-<link rel="preconnect" href="">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap">
+
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Couche fond (image / video / canvas) -->
+  <!-- Fond (image / vidéo plus tard) -->
   <div class="bg" id="bg"></div>
-  <div class="bg-overlay"></div>
+  <div class="vignette"></div>
 
-  <!-- Contenu principal -->
   <main class="screen">
 
+    <!-- ── Haut gauche : identité ─────────────────────────────────── -->
     <header class="head">
-      <div class="logo" id="logo">SCP <span>ATLAS</span></div>
-      <div class="hostname" id="hostname">Connexion au serveur…</div>
+      <h1 class="head-title">Chargement <b id="hostname">SCP Atlas</b></h1>
+      <div class="head-sub"  id="gamemode">Zone Atlas</div>
+      <div class="head-desc" id="mapline">Station de recherche météorologique.</div>
     </header>
 
-    <section class="center">
-      <div class="tips">
-        <div class="tips-label">Astuce</div>
-        <div class="tips-text" id="tip">Chargement…</div>
-      </div>
-    </section>
+    <!-- ── Gauche milieu : flux de connexion ──────────────────────── -->
+    <aside class="feed" id="feed"></aside>
 
-    <footer class="foot">
-      <div class="status" id="status">Initialisation…</div>
+    <!-- ── Centre : anneaux ───────────────────────────────────────── -->
+    <div class="loader">
+      <svg class="spinner" viewBox="0 0 220 220" aria-hidden="true">
+        <circle class="s-track"          cx="110" cy="110" r="101"/>
+        <circle class="s-progress" id="s-progress" cx="110" cy="110" r="101"/>
+        <circle class="s-arc s-arc--out" cx="110" cy="110" r="80"/>
+        <circle class="s-arc s-arc--in"  cx="110" cy="110" r="56"/>
+      </svg>
+    </div>
 
-      <div class="bar">
-        <div class="bar-fill" id="bar-fill"></div>
+    <!-- ── Bas centre : mot animé + état ──────────────────────────── -->
+    <div class="foot">
+      <div class="wave" id="wave"></div>
+      <div class="foot-meta">
+        <span id="progress-text">0 %</span>
+        <span class="sep"></span>
+        <span id="status">Initialisation</span>
       </div>
+    </div>
 
-      <div class="meta">
-        <span id="progress-text">0%</span>
-        <span class="meta-sep">•</span>
-        <span id="file">—</span>
-        <span class="meta-spacer"></span>
-        <span id="map">—</span>
-        <span class="meta-sep">•</span>
-        <span id="gamemode">—</span>
-        <span class="meta-sep">•</span>
-        <span id="players">—</span>
-      </div>
-    </footer>
+    <!-- ── Bas gauche : astuce / dossier ──────────────────────────── -->
+    <div class="tip">
+      <div class="tip-bar"></div>
+      <p class="tip-text" id="tip"></p>
+    </div>
 
   </main>
 

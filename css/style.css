@@ -1,22 +1,26 @@
 /* ==========================================================================
    SCP Atlas — Loading screen
-   Base neutre et volontairement sobre : le design final se construit ici.
-   Variables en haut = seul endroit à toucher pour changer l'identité.
+   Disposition inspirée d'un écran de chargement minimal : noir plein,
+   texte blanc, condensé en capitales, anneaux au centre.
+
+   Tout se règle depuis les variables ci-dessous.
    ========================================================================== */
 
 :root {
-  --c-bg:        #07090c;
-  --c-surface:   rgba(255, 255, 255, .04);
-  --c-border:    rgba(255, 255, 255, .10);
-  --c-text:      #e9edf2;
-  --c-muted:     #7d8794;
-  --c-accent:    #c0392b;
-  --c-accent-2:  #e74c3c;
+  --c-bg:      #000;
+  --c-text:    #ffffff;
+  --c-dim:     rgba(255, 255, 255, .55);
+  --c-faint:   rgba(255, 255, 255, .28);
+  --c-surface: rgba(255, 255, 255, .07);
 
-  --font-display: 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
-  --font-body:    'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body:    'Barlow', 'Segoe UI', system-ui, sans-serif;
 
-  --pad: clamp(24px, 4vw, 64px);
+  --pad: clamp(22px, 2.6vw, 46px);
+
+  --ring-size: clamp(190px, 22vw, 330px);
+  --ring-speed-out: 2.8s;
+  --ring-speed-in:  3.6s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,163 +36,300 @@ body {
   color: var(--c-text);
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   user-select: none;
   cursor: default;
 }
 
-/* ------------------------------------------------------------------ fond */
+/* ------------------------------------------------------------------- fond */
 
 .bg {
   position: fixed;
   inset: 0;
-  background: radial-gradient(120% 90% at 50% 0%, #131a22 0%, #07090c 65%);
+  z-index: 0;
+  background: radial-gradient(circle at 50% 46%, #0b0b0c 0%, #000 68%);
   background-size: cover;
   background-position: center;
-  z-index: 0;
 }
 
-.bg-overlay {
+.vignette {
   position: fixed;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(180deg, rgba(7, 9, 12, .55) 0%, rgba(7, 9, 12, .15) 40%, rgba(7, 9, 12, .92) 100%);
   pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, .75) 100%);
 }
-
-/* --------------------------------------------------------------- structure */
 
 .screen {
-  position: relative;
+  position: fixed;
+  inset: 0;
   z-index: 2;
-  height: 100%;
-  padding: var(--pad);
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 24px;
 }
 
-/* ------------------------------------------------------------------ header */
+/* ------------------------------------------------------------- haut gauche */
 
 .head {
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
-  flex-wrap: wrap;
+  position: absolute;
+  top: var(--pad);
+  left: var(--pad);
+  max-width: 60vw;
 }
 
-.logo {
+.head-title {
   font-family: var(--font-display);
-  font-size: clamp(22px, 2.4vw, 34px);
-  font-weight: 700;
-  letter-spacing: .18em;
+  font-size: clamp(21px, 1.9vw, 32px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: .015em;
   text-transform: uppercase;
 }
 
-.logo span { color: var(--c-accent-2); }
+.head-title b { font-weight: 700; }
 
-.hostname {
-  color: var(--c-muted);
-  font-size: 14px;
-  letter-spacing: .04em;
+.head-sub {
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: clamp(13px, 1.05vw, 17px);
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .82);
 }
 
-/* ------------------------------------------------------------------ centre */
+.head-desc {
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: clamp(11px, .85vw, 14px);
+  font-weight: 400;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--c-dim);
+}
 
-.center {
+/* ----------------------------------------------------- flux (gauche milieu) */
+
+.feed {
+  position: absolute;
+  left: var(--pad);
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(330px, 28vw);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.feed-row {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  gap: 9px;
+  animation: rowIn .45s cubic-bezier(.2, .8, .3, 1) both;
 }
 
-.tips {
-  max-width: 620px;
-  padding: 20px 24px;
+.feed-ico {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
   background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-left: 2px solid var(--c-accent);
-  border-radius: 4px;
+  display: grid;
+  place-items: center;
 }
 
-.tips-label {
-  font-size: 11px;
-  letter-spacing: .22em;
+.feed-ico::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .55);
+}
+
+.feed-row:last-child .feed-ico::after {
+  background: #fff;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.feed-pill {
+  min-width: 0;
+  padding: 3px 11px;
+  border-radius: 20px;
+  background: var(--c-surface);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: .01em;
+  color: rgba(255, 255, 255, .72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1;  transform: scale(1); }
+  50%      { opacity: .3; transform: scale(.7); }
+}
+
+/* ------------------------------------------------------------ anneaux */
+
+.loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform: translateY(-4vh);
+}
+
+.spinner {
+  width: var(--ring-size);
+  height: var(--ring-size);
+  fill: none;
+  overflow: visible;
+}
+
+.spinner circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.s-track {
+  stroke: rgba(255, 255, 255, .07);
+  stroke-width: 1.5;
+}
+
+/* Anneau de progression réelle — r=101 → circonférence 634.6 */
+.s-progress {
+  stroke: #fff;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 634.6;
+  stroke-dashoffset: 634.6;
+  transform: rotate(-90deg);
+  transition: stroke-dashoffset .25s linear;
+}
+
+.s-arc {
+  stroke: #fff;
+  stroke-width: 11;
+  stroke-linecap: round;
+}
+
+/* r=80 → 502.6 · arc d'environ 200° */
+.s-arc--out {
+  stroke-dasharray: 279 224;
+  animation: spin var(--ring-speed-out) cubic-bezier(.45, .05, .55, .95) infinite;
+}
+
+/* r=56 → 351.9 · arc d'environ 200°, sens inverse */
+.s-arc--in {
+  stroke-dasharray: 195 157;
+  animation: spin var(--ring-speed-in) cubic-bezier(.45, .05, .55, .95) infinite reverse;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------- bas : mot animé */
+
+.foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--pad) + 6.5vh);
+  text-align: center;
+}
+
+.wave {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 1.35vw, 22px);
+  font-weight: 400;
+  letter-spacing: .09em;
   text-transform: uppercase;
-  color: var(--c-accent-2);
-  margin-bottom: 8px;
+  height: 1.6em;
 }
 
-.tips-text {
-  font-size: 17px;
+.wave span {
+  display: inline-block;
+  animation: wave 1.9s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0%, 55%, 100% { transform: translateY(0); }
+  25%           { transform: translateY(-.42em); }
+}
+
+.foot-meta {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--c-faint);
+}
+
+.sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* -------------------------------------------------------- bas : astuce */
+
+.tip {
+  position: absolute;
+  left: var(--pad);
+  bottom: var(--pad);
+  display: flex;
+  gap: 15px;
+  max-width: min(52ch, 46vw);
+}
+
+.tip-bar {
+  flex: none;
+  width: 3px;
+  background: #fff;
+}
+
+.tip-text {
+  font-family: var(--font-body);
+  font-size: clamp(14px, 1.02vw, 17px);
+  font-weight: 300;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, .88);
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity .35s ease, transform .35s ease;
+  transform: translateY(5px);
+  transition: opacity .4s ease, transform .4s ease;
 }
 
-.tips-text.is-visible {
+.tip-text.is-visible {
   opacity: 1;
   transform: none;
 }
 
-/* ------------------------------------------------------------------- footer */
-
-.foot {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.status {
-  font-size: 15px;
-  letter-spacing: .02em;
-}
-
-.bar {
-  position: relative;
-  height: 4px;
-  background: rgba(255, 255, 255, .08);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.bar-fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--c-accent), var(--c-accent-2));
-  border-radius: 2px;
-  transition: width .1s linear;
-}
-
-.meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-size: 12px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-}
-
-.meta-sep { opacity: .4; }
-.meta-spacer { flex: 1 1 auto; }
-
-/* --------------------------------------------------------------- preview */
-/* Badge visible uniquement hors du jeu, pour ne pas confondre les deux modes */
+/* ---------------------------------------------------------- preview */
 
 body.is-preview::after {
-  content: 'PREVIEW NAVIGATEUR — données simulées';
+  content: 'PREVIEW NAVIGATEUR — DONNÉES SIMULÉES';
   position: fixed;
   z-index: 10;
   top: 12px;
   right: 12px;
   padding: 5px 10px;
-  font-size: 10px;
-  letter-spacing: .12em;
-  color: #ffd479;
-  background: rgba(255, 190, 60, .10);
-  border: 1px solid rgba(255, 190, 60, .35);
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: .14em;
+  color: rgba(255, 255, 255, .5);
+  border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 3px;
 }
