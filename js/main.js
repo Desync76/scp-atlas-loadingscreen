@@ -17,13 +17,14 @@
     mapline:  $('mapline'),
     feed:     $('feed'),
     ring:     $('s-progress'),
+    cursor:   $('prog-cursor'),
     wave:     $('wave'),
     progress: $('progress-text'),
     status:   $('status'),
     tip:      $('tip')
   };
 
-  var RING_C = 634.6;   // 2πr avec r = 101, doit rester aligné sur style.css
+  var RING_C = 917.3;   // 2πr avec r = 146, doit rester aligné sur style.css
   var FEED_MAX = 4;     // nombre de lignes visibles dans le flux
 
   // ------------------------------------------------------------- utilitaires
@@ -137,7 +138,6 @@
 
   var displayed = 0;
   var target = 0;
-  var lastSpread = -1;
   var locked = false;
 
   (function tick() {
@@ -147,15 +147,11 @@
     el.ring.style.strokeDashoffset = (RING_C * (1 - displayed)).toFixed(1);
     el.progress.textContent = Math.round(displayed * 100) + ' %';
 
-    // Plus le chargement avance, moins le logo se disperse : le confinement
-    // se resserre. SPREAD_MAX → SPREAD_MIN en unités du viewBox du logo.
-    var spread = Math.round(330 - displayed * 230);
-    if (spread !== lastSpread) {
-      lastSpread = spread;
-      document.documentElement.style.setProperty('--spread', spread + 'px');
-    }
+    // Curseur radial cale sur l'avancement (viewBox 400, centre 200/200)
+    el.cursor.setAttribute('transform',
+      'rotate(' + (displayed * 360).toFixed(2) + ' 200 200)');
 
-    // À 100 %, le logo se fige assemblé et l'écran marque le verrouillage.
+    // À 100 %, la comète s'éteint et le sceau marque le verrouillage.
     if (!locked && target >= 0.999) {
       locked = true;
       document.body.classList.add('is-ready');

@@ -32,10 +32,31 @@
     <!-- ── Centre : anneau de progression + logo animé ────────────── -->
     <div class="loader">
 
-      <svg class="ring" viewBox="0 0 220 220" aria-hidden="true">
-        <circle class="r-track"    cx="110" cy="110" r="101"/>
-        <circle class="r-scan"     cx="110" cy="110" r="93"/>
-        <circle class="r-progress" cx="110" cy="110" r="101" id="s-progress"/>
+      <svg class="hud" viewBox="0 0 400 400" aria-hidden="true">
+
+        <!-- Équerres de cadrage — fixes -->
+        <g class="hud-frame">
+          <path d="M26 56V26h30"/>
+          <path d="M344 26h30v30"/>
+          <path d="M374 344v30h-30"/>
+          <path d="M56 374H26v-30"/>
+        </g>
+
+        <!-- Rail + comète : le seul élément en rotation -->
+        <circle class="hud-rail" cx="200" cy="200" r="122"/>
+        <g class="hud-spin">
+          <circle class="hud-comet hud-comet--3" cx="200" cy="200" r="122"/>
+          <circle class="hud-comet hud-comet--2" cx="200" cy="200" r="122"/>
+          <circle class="hud-comet hud-comet--1" cx="200" cy="200" r="122"/>
+        </g>
+
+        <!-- Progression réelle -->
+        <circle class="hud-track" cx="200" cy="200" r="146"/>
+        <circle class="hud-prog"  cx="200" cy="200" r="146" id="s-progress"/>
+        <g id="prog-cursor" class="hud-cursor">
+          <line x1="200" y1="42" x2="200" y2="64"/>
+        </g>
+
       </svg>
 
       <!-- Logo vectorisé depuis logo_blanc.png par scripts/build-logo.py.

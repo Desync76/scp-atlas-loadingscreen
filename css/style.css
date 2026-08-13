@@ -16,11 +16,14 @@
 
   --pad: clamp(22px, 2.6vw, 46px);
 
-  --ring-size: clamp(200px, 24vw, 350px);
+  --ring-size: clamp(250px, 29vw, 420px);
 
-  /* Animation du logo */
-  --cycle:  7s;      /* durée d'un cycle décomposition → recomposition */
-  --spread: 330px;   /* écartement des pièces — piloté par main.js */
+  /* Assemblage du sceau à l'ouverture (une seule fois) */
+  --intro:  .9s;
+  --spread: 210px;   /* écartement de départ des pièces */
+
+  /* Comète de chargement — le seul élément en rotation */
+  --spin-comet: 2s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -185,41 +188,69 @@ body {
   overflow: visible;
 }
 
-/* ---- anneau de progression ------------------------------------------- */
+/* ---- réticule ---------------------------------------------------------- */
 
-.ring {
+.hud {
   width: var(--ring-size);
   height: var(--ring-size);
   fill: none;
+  stroke: currentColor;
+  color: var(--c-text);
 }
 
-.ring circle {
-  transform-box: fill-box;
+.hud circle,
+.hud g {
+  transform-box: view-box;
   transform-origin: center;
 }
 
-.r-track {
-  stroke: rgba(255, 255, 255, .07);
-  stroke-width: 1.5;
+/* Équerres de cadrage */
+.hud-frame {
+  stroke-width: 1.4;
+  opacity: .3;
 }
 
-/* Balayage lent — garde l'écran vivant pendant la phase de maintien */
-.r-scan {
-  stroke: rgba(255, 255, 255, .22);
+/* Rail de la comète — r=122, C=766.5 */
+.hud-rail {
   stroke-width: 1;
-  stroke-dasharray: 2 14;
-  animation: spin 26s linear infinite;
+  opacity: .06;
 }
 
-/* Progression réelle — r=101 → circonférence 634.6 (voir main.js) */
-.r-progress {
-  stroke: #fff;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-dasharray: 634.6;
-  stroke-dashoffset: 634.6;
+.hud-spin {
+  animation: spin var(--spin-comet) linear infinite;
+  transition: opacity .6s ease;
+}
+
+/* Trois segments jointifs de 26° : tête opaque, traîne dégressive */
+.hud-comet {
+  stroke-width: 2.5;
+  stroke-dasharray: 55.4 711.1;
+}
+
+.hud-comet--1 { stroke-dashoffset:     0; opacity: 1;   stroke-linecap: round; }
+.hud-comet--2 { stroke-dashoffset: -55.4; opacity: .4;  }
+.hud-comet--3 { stroke-dashoffset: -110.8; opacity: .14; }
+
+/* Progression réelle — r=146, C=917.3 (valeur reprise dans main.js) */
+.hud-track {
+  stroke-width: 2.5;
+  opacity: .08;
+}
+
+.hud-prog {
+  stroke-width: 2.5;
+  stroke-linecap: butt;
+  stroke-dasharray: 917.3;
+  stroke-dashoffset: 917.3;
   transform: rotate(-90deg);
   transition: stroke-dashoffset .25s linear;
+}
+
+/* Curseur radial positionné sur l'avancement — piloté par main.js */
+.hud-cursor {
+  stroke-width: 2;
+  opacity: .85;
+  transition: transform .25s linear;
 }
 
 @keyframes spin {
@@ -230,104 +261,54 @@ body {
 /* ---- logo ------------------------------------------------------------- */
 
 .logo {
-  width:  calc(var(--ring-size) * .74);
-  height: calc(var(--ring-size) * .74);
+  width:  calc(var(--ring-size) * .52);
+  height: calc(var(--ring-size) * .52);
   color: var(--c-text);
 }
 
-.logo-parts {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: logoGlitch var(--cycle) steps(1, end) infinite;
-}
-
-/* Chaque pièce porte --dx / --dy (sa direction d'éclatement, calculée par
+/* Le sceau s'assemble UNE FOIS à l'ouverture, puis ne bouge plus.
+   Chaque pièce porte --dx / --dy (sa direction, calculée par
    scripts/build-logo.py) et --i (son rang dans l'assemblage). */
 .lp {
   transform-box: fill-box;
   transform-origin: center;
-  animation: pieceCycle var(--cycle) infinite;
-  animation-delay: calc(var(--i) * .07s);
+  animation: pieceIn var(--intro) cubic-bezier(.16, .84, .3, 1) both;
+  animation-delay: calc(var(--i) * .055s);
 }
 
-.lp:nth-child(odd)  { --rot:  16deg; }
-.lp:nth-child(even) { --rot: -16deg; }
+.lp:nth-child(odd)  { --rot:  14deg; }
+.lp:nth-child(even) { --rot: -14deg; }
 
-/* L'anneau ne s'éclate pas : il pivote et se resserre autour du reste. */
+/* L'anneau ne s'éclate pas : il pivote et se referme sur le reste. */
 #lp-ring {
   transform-box: view-box;
   transform-origin: center;
-  animation: ringCycle var(--cycle) infinite;
+  animation: ringIn var(--intro) cubic-bezier(.16, .84, .3, 1) both;
 }
 
-@keyframes pieceCycle {
-  0% {
+@keyframes pieceIn {
+  from {
     opacity: 0;
     transform: translate(calc(var(--dx) * var(--spread)), calc(var(--dy) * var(--spread)))
-               rotate(var(--rot)) scale(.72);
-    animation-timing-function: cubic-bezier(.14, .8, .28, 1);
+               rotate(var(--rot)) scale(.8);
   }
-  10% { opacity: 1; }
-  22% {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0deg) scale(1.05);
-    animation-timing-function: cubic-bezier(.3, 0, .2, 1);
-  }
-  28% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  68% {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0deg) scale(1);
-    animation-timing-function: cubic-bezier(.7, 0, .9, .2);
-  }
-  90%, 100% {
-    opacity: 0;
-    transform: translate(calc(var(--dx) * var(--spread)), calc(var(--dy) * var(--spread)))
-               rotate(calc(var(--rot) * -1)) scale(.72);
-  }
+  to { opacity: 1; transform: none; }
 }
 
-@keyframes ringCycle {
-  0% {
-    opacity: 0;
-    transform: rotate(-45deg) scale(1.22);
-    animation-timing-function: cubic-bezier(.14, .8, .28, 1);
-  }
-  8%  { opacity: .5; }
-  22% { opacity: 1; transform: rotate(0deg) scale(1); }
-  68% {
-    opacity: 1;
-    transform: rotate(0deg) scale(1);
-    animation-timing-function: cubic-bezier(.7, 0, .9, .2);
-  }
-  90%, 100% { opacity: 0; transform: rotate(45deg) scale(1.22); }
-}
-
-/* Micro-instabilité pendant la phase assemblée */
-@keyframes logoGlitch {
-  0%, 40%   { transform: none;             opacity: 1;   }
-  41%       { transform: translateX(-7px); opacity: .65; }
-  42%       { transform: translateX(6px);  opacity: 1;   }
-  43%, 56%  { transform: none;             opacity: 1;   }
-  57%       { transform: translateX(4px);  opacity: .8;  }
-  58%, 100% { transform: none;             opacity: 1;   }
+@keyframes ringIn {
+  from { opacity: 0; transform: rotate(-38deg) scale(1.18); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* ---- verrouillage à 100 % --------------------------------------------- */
 
-body.is-ready .lp,
-body.is-ready #lp-ring,
-body.is-ready .logo-parts {
-  animation: none;
-  transform: none;
-  opacity: 1;
-}
+/* La comète s'éteint : plus rien ne tourne, le chargement est terminé. */
+body.is-ready .hud-spin { animation-play-state: paused; opacity: 0; }
 
-body.is-ready .logo {
-  animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
-}
+body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both; }
 
 @keyframes lockFlash {
-  0%   { transform: scale(1.07); filter: drop-shadow(0 0 26px rgba(255, 255, 255, .95)); }
+  0%   { transform: scale(1.06); filter: drop-shadow(0 0 26px rgba(255, 255, 255, .95)); }
   100% { transform: scale(1);    filter: drop-shadow(0 0 0   rgba(255, 255, 255, 0));    }
 }
 
@@ -430,6 +411,7 @@ body.is-preview::after {
 
 /* Respecte le réglage système de réduction des animations */
 @media (prefers-reduced-motion: reduce) {
-  .lp, #lp-ring, .logo-parts, .r-scan, .wave span { animation: none; }
+  .lp, #lp-ring, .wave span { animation: none; }
   .lp, #lp-ring { opacity: 1; transform: none; }
+  .hud-spin { animation-duration: 6s; }
 }
