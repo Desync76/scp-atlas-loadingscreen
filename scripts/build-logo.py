@@ -109,11 +109,18 @@ def main():
     open(out_svg, "w", encoding="utf-8").write("\n".join(static))
 
     # --- injection dans index.html ----------------------------------------
-    inline = []
-    for n, p in enumerate(pieces):
-        inline.append(
-            '        <path class="lp" id="lp-%s" style="--dx:%s;--dy:%s;--i:%d" d="%s"/>'
-            % (p["id"], p["dx"], p["dy"], n, p["d"]))
+    # Deux groupes : la couronne d'un côté, le cœur de l'autre. Ils tournent
+    # en sens opposé (voir .lg-outer / .lg-inner dans css/style.css).
+    def tag(p, n):
+        return ('          <path class="lp" id="lp-%s" style="--dx:%s;--dy:%s;--i:%d" d="%s"/>'
+                % (p["id"], p["dx"], p["dy"], n, p["d"]))
+
+    inline = ['        <g class="lg-outer">']
+    inline += [tag(p, n) for n, p in enumerate(pieces) if p["id"] == "ring"]
+    inline.append('        </g>')
+    inline.append('        <g class="lg-inner">')
+    inline += [tag(p, n) for n, p in enumerate(pieces) if p["id"] != "ring"]
+    inline.append('        </g>')
 
     idx_path = os.path.join(ROOT, "index.html")
     html = open(idx_path, encoding="utf-8").read()

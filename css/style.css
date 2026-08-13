@@ -16,14 +16,14 @@
 
   --pad: clamp(22px, 2.6vw, 46px);
 
-  --ring-size: clamp(250px, 29vw, 420px);
+  --logo-size: clamp(210px, 25vw, 340px);
 
   /* Assemblage du sceau à l'ouverture (une seule fois) */
   --intro:  .9s;
   --spread: 210px;   /* écartement de départ des pièces */
 
-  /* Comète de chargement — le seul élément en rotation */
-  --spin-comet: 2s;
+  /* Rotation continue de la couronne du sceau */
+  --spin-outer: 9s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -183,87 +183,27 @@ body {
   transform: translateY(-4vh);
 }
 
-.loader > svg {
-  grid-area: 1 / 1;      /* les deux SVG se superposent */
+.logo {
+  width:  var(--logo-size);
+  height: var(--logo-size);
+  color: var(--c-text);
   overflow: visible;
 }
 
-/* ---- réticule ---------------------------------------------------------- */
-
-.hud {
-  width: var(--ring-size);
-  height: var(--ring-size);
-  fill: none;
-  stroke: currentColor;
-  color: var(--c-text);
-}
-
-.hud circle,
-.hud g {
+/* Seule la couronne tourne — ses trois flèches ont une symétrie d'ordre 3,
+   la rotation reste donc lisible à n'importe quel angle. Le cœur reste fixe :
+   le faire tourner aussi désaligne les deux couches et le sceau paraît cassé.
+   Le délai laisse l'assemblage se terminer avant la mise en rotation. */
+.lg-outer {
   transform-box: view-box;
   transform-origin: center;
-}
-
-/* Équerres de cadrage */
-.hud-frame {
-  stroke-width: 1.4;
-  opacity: .3;
-}
-
-/* Rail de la comète — r=122, C=766.5 */
-.hud-rail {
-  stroke-width: 1;
-  opacity: .06;
-}
-
-.hud-spin {
-  animation: spin var(--spin-comet) linear infinite;
-  transition: opacity .6s ease;
-}
-
-/* Trois segments jointifs de 26° : tête opaque, traîne dégressive */
-.hud-comet {
-  stroke-width: 2.5;
-  stroke-dasharray: 55.4 711.1;
-}
-
-.hud-comet--1 { stroke-dashoffset:     0; opacity: 1;   stroke-linecap: round; }
-.hud-comet--2 { stroke-dashoffset: -55.4; opacity: .4;  }
-.hud-comet--3 { stroke-dashoffset: -110.8; opacity: .14; }
-
-/* Progression réelle — r=146, C=917.3 (valeur reprise dans main.js) */
-.hud-track {
-  stroke-width: 2.5;
-  opacity: .08;
-}
-
-.hud-prog {
-  stroke-width: 2.5;
-  stroke-linecap: butt;
-  stroke-dasharray: 917.3;
-  stroke-dashoffset: 917.3;
-  transform: rotate(-90deg);
-  transition: stroke-dashoffset .25s linear;
-}
-
-/* Curseur radial positionné sur l'avancement — piloté par main.js */
-.hud-cursor {
-  stroke-width: 2;
-  opacity: .85;
-  transition: transform .25s linear;
+  animation: spin var(--spin-outer) linear infinite;
+  animation-delay: var(--intro);
 }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
-}
-
-/* ---- logo ------------------------------------------------------------- */
-
-.logo {
-  width:  calc(var(--ring-size) * .52);
-  height: calc(var(--ring-size) * .52);
-  color: var(--c-text);
 }
 
 /* Le sceau s'assemble UNE FOIS à l'ouverture, puis ne bouge plus.
@@ -302,8 +242,8 @@ body {
 
 /* ---- verrouillage à 100 % --------------------------------------------- */
 
-/* La comète s'éteint : plus rien ne tourne, le chargement est terminé. */
-body.is-ready .hud-spin { animation-play-state: paused; opacity: 0; }
+/* Plus rien ne tourne : le chargement est terminé. */
+body.is-ready .lg-outer { animation-play-state: paused; }
 
 body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both; }
 
@@ -413,5 +353,5 @@ body.is-preview::after {
 @media (prefers-reduced-motion: reduce) {
   .lp, #lp-ring, .wave span { animation: none; }
   .lp, #lp-ring { opacity: 1; transform: none; }
-  .hud-spin { animation-duration: 6s; }
+  .lg-outer { animation-duration: 50s; }
 }

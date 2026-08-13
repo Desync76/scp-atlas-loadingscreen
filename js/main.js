@@ -16,15 +16,12 @@
     gamemode: $('gamemode'),
     mapline:  $('mapline'),
     feed:     $('feed'),
-    ring:     $('s-progress'),
-    cursor:   $('prog-cursor'),
     wave:     $('wave'),
     progress: $('progress-text'),
     status:   $('status'),
     tip:      $('tip')
   };
 
-  var RING_C = 917.3;   // 2πr avec r = 146, doit rester aligné sur style.css
   var FEED_MAX = 4;     // nombre de lignes visibles dans le flux
 
   // ------------------------------------------------------------- utilitaires
@@ -144,14 +141,9 @@
     displayed += (target - displayed) * 0.12;
     if (Math.abs(target - displayed) < 0.0005) displayed = target;
 
-    el.ring.style.strokeDashoffset = (RING_C * (1 - displayed)).toFixed(1);
     el.progress.textContent = Math.round(displayed * 100) + ' %';
 
-    // Curseur radial cale sur l'avancement (viewBox 400, centre 200/200)
-    el.cursor.setAttribute('transform',
-      'rotate(' + (displayed * 360).toFixed(2) + ' 200 200)');
-
-    // À 100 %, la comète s'éteint et le sceau marque le verrouillage.
+    // À 100 %, la rotation s'arrête et le sceau marque le verrouillage.
     if (!locked && target >= 0.999) {
       locked = true;
       document.body.classList.add('is-ready');
