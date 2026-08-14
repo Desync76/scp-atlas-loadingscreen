@@ -11,12 +11,18 @@
   --c-faint:   rgba(255, 255, 255, .28);
   --c-surface: rgba(255, 255, 255, .07);
 
-  /* Couleur d'accent : ambre de danger industriel. Employée avec parcimonie —
-     le nom du serveur, la barre d'astuce, les désignations SCP, la barre de
+  /* Couleur d'accent : le rouge du serveur. Employée avec parcimonie — le nom
+     du serveur, la barre d'astuce, les désignations SCP, le fil de
      progression. Tout le reste reste blanc : c'est la rareté de l'accent qui
-     lui donne sa force. Mettre --c-accent à #fff pour revenir au monochrome. */
-  --c-accent:  #e39a21;
-  --c-accent-d: rgba(227, 154, 33, .28);
+     lui donne sa force. Mettre --c-accent à #fff pour revenir au monochrome.
+
+     Nuance volontairement éclaircie plutôt qu'un rouge pur : sur fond noir,
+     #ff0000 bave sur les bords des lettres fines (frange chromatique) et se
+     lit mal en petit corps. Ce rouge-ci garde 5,4:1 de contraste sur le noir
+     tout en restant franchement rouge. Remplace-le par le hex exact de ton
+     serveur si tu l'as. */
+  --c-accent:  #e8453c;
+  --c-accent-d: rgba(232, 69, 60, .30);
 
   --font-display: 'Barlow Condensed', 'Oswald', 'Arial Narrow', sans-serif;
   --font-body:    'Barlow', 'Segoe UI', system-ui, sans-serif;
