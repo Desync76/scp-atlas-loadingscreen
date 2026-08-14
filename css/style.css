@@ -18,13 +18,8 @@
 
   --logo-size: clamp(210px, 25vw, 340px);
 
-  /* Assemblage du sceau à l'ouverture (une seule fois) */
-  --intro:  .9s;
-  --spread: 210px;   /* écartement de départ des pièces */
-
-  /* Cycle : cœur qui sort → couronne qui pivote de 120° → cœur qui revient.
-     La couronne ne tourne jamais tant que le cœur est en place. */
-  --cycle: 7s;
+  /* Cycle du sceau : éclatement → dérive → resserrement, en boucle */
+  --cycle: 3.4s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -191,136 +186,110 @@ body {
   overflow: visible;
 }
 
-/* La couronne ne tourne QUE pendant que le cœur est sorti. Tant que les deux
-   couches sont visibles ensemble, elle reste immobile : c'est ce qui évitait
-   le frottement des flèches contre les pointes de l'hexagone.
-   Elle tourne de 120° exactement — sa symétrie d'ordre 3 fait que 120° et 0°
-   sont visuellement identiques, donc le retour à 0° au bouclage ne se voit
-   pas et le sceau se reforme toujours dans son orientation d'origine. */
-.lg-outer {
+/* ===========================================================================
+   Cycle du sceau — d'après la vidéo de référence SCP: 5K
+   Le sceau éclate : les trois secteurs d'anneau et les pièces du cœur
+   s'écartent radialement pendant que l'ensemble grossit, tournent autour du
+   centre, puis se resserrent et le sceau se referme. En boucle, sans coupure.
+   =========================================================================== */
+
+/* Zoom d'ensemble : le sceau enfle pendant qu'il est éclaté. */
+.lg-all {
   transform-box: view-box;
   transform-origin: center;
-  animation: crownTurn var(--cycle) infinite;
+  animation: sealZoom var(--cycle) infinite;
 }
 
-@keyframes crownTurn {
-  0%   { transform: rotate(0deg); }
-  45%  { transform: rotate(0deg); animation-timing-function: cubic-bezier(.62, 0, .3, 1); }
-  68%  { transform: rotate(120deg); }
-  100% { transform: rotate(120deg); }
+@keyframes sealZoom {
+  0%,  9%  { transform: scale(1);    animation-timing-function: cubic-bezier(.16, .9, .28, 1); }
+  26%      { transform: scale(1.11); animation-timing-function: ease-in-out; }
+  58%      { transform: scale(1.16); animation-timing-function: cubic-bezier(.55, 0, .18, 1); }
+  87%,100% { transform: scale(1); }
 }
 
-/* ---- déraillement du cœur --------------------------------------------- */
+/* Chaque pièce porte --dx / --dy (sa direction depuis le centre) et --sp
+   (l'amplitude de son balayage), tous deux calculés par build-logo.py.
 
-/* Le groupe porte le glitch, le <path> qu'il contient porte l'assemblage
-   d'ouverture. Deux calques, sinon les deux se disputent transform. */
+   L'ordre rotate() puis translate() compte : la translation s'applique en
+   premier, donc la pièce s'écarte radialement, et la rotation fait ensuite
+   pivoter toute la configuration autour du centre du sceau. C'est ce qui
+   donne les arcs qui glissent le long du cercle plutôt que de tourner sur
+   eux-mêmes. */
 .gp {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-/* Le cœur sort de scène pour libérer la rotation, puis revient. Il n'est plus
-   rétréci : la couronne ne tourne jamais en sa présence, donc le jour
-   artificiel entre les pointes et l'anneau n'a plus lieu d'être et le logo
-   garde ses proportions d'origine. */
-.lg-inner .gp {
-  animation: coreCycleA var(--cycle) steps(1, end) infinite;
-}
-
-/* Trois variantes réparties sur les pièces pour que rien ne bouge ensemble */
-.lg-inner .gp:nth-child(3n+1) { animation-name: coreCycleB; }
-.lg-inner .gp:nth-child(3n+2) { animation-name: coreCycleC; }
-
-/* Sortie brève (37→43 %), absence pendant toute la rotation (43→71 %),
-   retour bref (73→79 %). Déplacements volontairement courts — viewBox de
-   1000, donc 20 px ≈ 2 % de la largeur : un décrochage, pas une explosion. */
-@keyframes coreCycleA {
-  0%,  36%  { transform: none; opacity: 1; }
-  37%  { transform: translate(calc(var(--dx) * 20px), calc(var(--dy) * 20px)); opacity: .6; }
-  39%  { transform: translate(-14px, 6px); opacity: 1; }
-  41%  { transform: translate(calc(var(--dx) * 26px), -7px) rotate(3deg); opacity: .35; }
-  43%, 71% { transform: none; opacity: 0; }
-  73%  { transform: translate(calc(var(--dx) * -22px), calc(var(--dy) * 8px)); opacity: .5; }
-  75%  { transform: translate(11px, -9px) rotate(-3deg); opacity: 1; }
-  77%  { transform: translate(calc(var(--dx) * 14px), 5px); opacity: .7; }
-  79%, 100% { transform: none; opacity: 1; }
-}
-
-@keyframes coreCycleB {
-  0%,  36%  { transform: none; opacity: 1; }
-  37%  { transform: translate(13px, -9px) rotate(-3deg); opacity: 1; }
-  39%  { transform: translate(calc(var(--dx) * -24px), calc(var(--dy) * 6px)); opacity: .5; }
-  41%  { transform: translate(4px, 15px); opacity: .3; }
-  43%, 71% { transform: none; opacity: 0; }
-  73%  { transform: translate(9px, 12px) rotate(4deg); opacity: .45; }
-  75%  { transform: translate(calc(var(--dx) * -16px), calc(var(--dy) * -10px)); opacity: 1; }
-  77%  { transform: translate(-8px, 4px); opacity: .8; }
-  79%, 100% { transform: none; opacity: 1; }
-}
-
-@keyframes coreCycleC {
-  0%,  36%  { transform: none; opacity: 1; }
-  37%  { transform: translate(-7px, 12px); opacity: .8; }
-  39%  { transform: translate(calc(var(--dx) * 18px), calc(var(--dy) * -14px)) rotate(4deg); opacity: 1; }
-  41%  { transform: translate(10px, 3px) rotate(-2deg); opacity: .3; }
-  43%, 71% { transform: none; opacity: 0; }
-  73%  { transform: translate(calc(var(--dx) * 24px), calc(var(--dy) * 7px)); opacity: .55; }
-  75%  { transform: translate(-6px, -13px); opacity: 1; }
-  77%  { transform: translate(calc(var(--dx) * -11px), 6px) rotate(3deg); opacity: .65; }
-  79%, 100% { transform: none; opacity: 1; }
-}
-
-/* Le sceau s'assemble UNE FOIS à l'ouverture, puis ne bouge plus.
-   Chaque pièce porte --dx / --dy (sa direction, calculée par
-   scripts/build-logo.py) et --i (son rang dans l'assemblage). */
-.lp {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: pieceIn var(--intro) cubic-bezier(.16, .84, .3, 1) both;
-  animation-delay: calc(var(--i) * .055s);
-}
-
-/* Chaque path est seul dans son .gp : c'est le groupe qu'on alterne. */
-.gp:nth-child(odd)  { --rot:  14deg; }
-.gp:nth-child(even) { --rot: -14deg; }
-
-/* L'anneau ne s'éclate pas : il pivote et se referme sur le reste. */
-#lp-ring {
   transform-box: view-box;
   transform-origin: center;
-  animation: ringIn var(--intro) cubic-bezier(.16, .84, .3, 1) both;
+  animation: sealBurst var(--cycle) infinite;
 }
 
-@keyframes pieceIn {
-  from {
-    opacity: 0;
-    transform: translate(calc(var(--dx) * var(--spread)), calc(var(--dy) * var(--spread)))
-               rotate(var(--rot)) scale(.8);
+.gp-sector { --burst: 112px; }
+
+/* Dans la référence, le centre du sceau est VIDE pendant l'éclatement : il n'y
+   reste que les arcs et les flèches. Le cœur hexagonal n'a pas d'équivalent
+   là-bas — si on le fait éclater aussi loin que les arcs, les deux couches se
+   croisent et l'ensemble devient illisible. Il s'écarte donc à peine et
+   s'efface, ce qui dégage le centre comme dans la vidéo. */
+.gp-core {
+  --burst: 62px;
+  animation-name: coreBurst;
+}
+
+@keyframes sealBurst {
+  0%, 9% {
+    transform: none;
+    animation-timing-function: cubic-bezier(.16, .9, .28, 1);
   }
-  to { opacity: 1; transform: none; }
+  26% {
+    transform: rotate(calc(var(--sp) * .55))
+               translate(calc(var(--dx) * var(--burst)),
+                         calc(var(--dy) * var(--burst)));
+    animation-timing-function: ease-in-out;
+  }
+  46% {
+    transform: rotate(var(--sp))
+               translate(calc(var(--dx) * var(--burst) * 1.2),
+                         calc(var(--dy) * var(--burst) * 1.2));
+    animation-timing-function: ease-in-out;
+  }
+  62% {
+    transform: rotate(calc(var(--sp) * .4))
+               translate(calc(var(--dx) * var(--burst) * .9),
+                         calc(var(--dy) * var(--burst) * .9));
+    animation-timing-function: cubic-bezier(.55, 0, .18, 1);
+  }
+  87%, 100% { transform: none; }
 }
 
-@keyframes ringIn {
-  from { opacity: 0; transform: rotate(-38deg) scale(1.18); }
-  to   { opacity: 1; transform: none; }
+@keyframes coreBurst {
+  0%, 9% {
+    transform: none; opacity: 1;
+    animation-timing-function: cubic-bezier(.16, .9, .28, 1);
+  }
+  16% { opacity: .7; }
+  26% {
+    transform: rotate(calc(var(--sp) * .6))
+               translate(calc(var(--dx) * var(--burst)),
+                         calc(var(--dy) * var(--burst)));
+    opacity: 0;
+  }
+  62% {
+    transform: rotate(var(--sp))
+               translate(calc(var(--dx) * var(--burst) * 1.3),
+                         calc(var(--dy) * var(--burst) * 1.3));
+    opacity: 0;
+    animation-timing-function: cubic-bezier(.55, 0, .18, 1);
+  }
+  78% { opacity: .55; }
+  87%, 100% { transform: none; opacity: 1; }
 }
 
 /* ---- verrouillage à 100 % --------------------------------------------- */
 
-/* Plus de cycle, plus de rotation : le sceau se cale droit et net.
-   !important est nécessaire — sans lui l'animation garderait la main sur
-   opacity et la couronne resterait invisible si le cycle s'arrête pendant
-   sa phase d'effacement. */
-body.is-ready .lg-outer {
-  animation: none;
-  opacity: 1 !important;
-  transition: transform .45s cubic-bezier(.2, .8, .3, 1);
-}
-
-body.is-ready .lg-inner .gp {
+/* Le cycle s'arrête et le sceau se referme là où il en est, en douceur. */
+body.is-ready .lg-all,
+body.is-ready .gp {
   animation: none;
   transform: none;
-  opacity: 1;
+  transition: transform .5s cubic-bezier(.2, .8, .3, 1);
 }
 
 body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both; }
@@ -429,6 +398,6 @@ body.is-preview::after {
 
 /* Respecte le réglage système de réduction des animations */
 @media (prefers-reduced-motion: reduce) {
-  .lp, #lp-ring, .wave span, .lg-inner .gp, .lg-outer { animation: none; }
-  .lp, #lp-ring, .lg-inner .gp, .lg-outer { opacity: 1; transform: none; }
+  .wave span, .gp, .lg-all { animation: none; }
+  .gp, .lg-all { transform: none; }
 }
