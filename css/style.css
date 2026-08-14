@@ -262,31 +262,32 @@ body {
 /* ---- flou de mouvement ------------------------------------------------- */
 
 /* Un flou gaussien étale dans toutes les directions : ça rend « flou », pas
-   « rapide ». Ici le mouvement est une rotation autour du centre, donc la
-   traînée doit suivre l'arc. Chaque secteur est répété quatre fois par <use>
-   et chaque copie est décalée EN ARRIÈRE le long de cette rotation, avec une
-   opacité dégressive — c'est l'étalement directionnel d'un vrai motion blur.
+   « rapide ». Un vrai flou de mouvement est un ÉCHANTILLONNAGE TEMPOREL —
+   l'accumulation des positions traversées pendant le temps de pose.
 
-   --k = rang du fantôme (1 = le plus proche), --a = son opacité maximale.
-   Ils restent constants : seuls l'angle et l'opacité sont animés. */
+   Le mouvement étant une rotation autour du centre, chaque échantillon est
+   simplement le secteur pivoté un peu en arrière. Douze copies espacées de
+   ~1,2° et très peu opaques se recouvrent largement et fusionnent en un
+   dégradé continu le long de l'arc. Avec trois ou quatre copies espacées de
+   5°, on distingue chaque tampon : c'est un écho, pas un flou.
+
+   --k (rang) et --a (opacité) sont posés en ligne par build-logo.py ; ils
+   sont constants, seuls l'angle et l'opacité sont animés — ce qui évite
+   d'avoir à enregistrer une propriété personnalisée avec @property. */
 .trail {
   transform-box: view-box;
   transform-origin: center;
   animation: trailSmear var(--cycle) infinite;
+  will-change: transform, opacity;
 }
 
-.trail-1 { --k: 1; --a: .42; }
-.trail-2 { --k: 2; --a: .26; }
-.trail-3 { --k: 3; --a: .14; }
-.trail-4 { --k: 4; --a: .07; }
-
 /* La traînée est nulle à l'arrêt et maximale au plus vite de la révolution :
-   sa longueur suit la vitesse, comme un vrai temps de pose. */
+   sa longueur suit la vitesse, exactement comme un temps de pose réel. */
 @keyframes trailSmear {
   0%,  12%  { transform: rotate(0deg); opacity: 0; }
-  26%       { transform: rotate(calc(var(--k) * -2.4deg)); opacity: calc(var(--a) * .55); }
-  48%       { transform: rotate(calc(var(--k) * -5.2deg)); opacity: var(--a); }
-  64%       { transform: rotate(calc(var(--k) * -2.4deg)); opacity: calc(var(--a) * .55); }
+  26%       { transform: rotate(calc(var(--k) * -0.62deg)); opacity: calc(var(--a) * .5); }
+  48%       { transform: rotate(calc(var(--k) * -1.35deg)); opacity: var(--a); }
+  64%       { transform: rotate(calc(var(--k) * -0.62deg)); opacity: calc(var(--a) * .5); }
   72%, 100% { transform: rotate(0deg); opacity: 0; }
 }
 

@@ -175,7 +175,14 @@ def main():
     # Les tracés vont dans <defs> et sont instanciés par <use>. Ça permet de
     # répéter un secteur plusieurs fois sans dupliquer son « d » : les copies
     # servent de traînée de flou de mouvement (voir .trail dans style.css).
-    TRAILS = 4
+    # Nombre d'échantillons de la traînée de flou de mouvement. Un vrai motion
+    # blur est un échantillonnage temporel : beaucoup de positions passées,
+    # très rapprochées et très peu opaques, qui s'accumulent en un dégradé
+    # continu. Sous ~10 échantillons on distingue les copies une à une et
+    # l'effet ressemble à un écho, pas à un flou.
+    TRAILS = 12
+    TRAIL_HEAD = 0.20     # opacité du fantôme le plus proche
+    TRAIL_FALLOFF = 1.5   # exposant de décroissance vers la queue
 
     inline = ['        <defs>']
     inline += ['          <path id="lp-%s" d="%s"/>' % (p["id"], p["d"]) for p in pieces]
@@ -186,10 +193,13 @@ def main():
                 % (p["kind"], p["dx"], p["dy"], n))
         if p["kind"] == "sector":
             # Fantômes du plus lointain au plus proche : ils se dessinent
-            # sous la pièce nette, qui vient en dernier.
-            ghosts = "".join(
-                '<g class="trail trail-%d"><use href="#lp-%s"/></g>' % (k, p["id"])
-                for k in range(TRAILS, 0, -1))
+            # sous la pièce nette, qui vient en dernier. L'opacité de chacun
+            # est calculée ici plutôt que d'écrire douze classes CSS.
+            ghosts = ""
+            for k in range(TRAILS, 0, -1):
+                a = TRAIL_HEAD * ((TRAILS - k + 1) / float(TRAILS)) ** TRAIL_FALLOFF
+                ghosts += ('<g class="trail" style="--k:%d;--a:%.3f">'
+                           '<use href="#lp-%s"/></g>' % (k, a, p["id"]))
             inline.append(head + ghosts + '<use href="#lp-%s"/></g>' % p["id"])
         else:
             inline.append(head + '<use href="#lp-%s"/></g>' % p["id"])
