@@ -147,7 +147,7 @@
     // ne gère pas les requêtes Range. Se caler là-dessus rendrait la synchro
     // dépendante du format ET du serveur.
     if (CFG.syncCycleToMusic && CFG.musicDuration) {
-      setCycle(CFG.musicDuration);
+      setCycle(CFG.musicDuration / (CFG.musicCycles || 1));
     }
 
     // Au démarrage effectif du son, on réaligne l'animation sur lui.

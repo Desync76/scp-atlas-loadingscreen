@@ -26,8 +26,8 @@ window.LS_CONFIG = {
   music: ['assets/audio/seal.mp3', 'assets/audio/seal.ogg'],
 
   // Volume de départ. Très bas volontairement : c'est une ambiance, pas un
-  // effet. Sur un chargement de deux minutes la boucle passe 46 fois.
-  musicVolume: 0.12,
+  // effet. Ajoute ?vol=0.6 à l'URL pour tester fort sans toucher à ceci.
+  musicVolume: 0.1,
 
   // Et elle recule encore ensuite. Un niveau constant, même faible, devient
   // pénible sur les chargements longs — surtout avec des téléchargements
@@ -42,7 +42,12 @@ window.LS_CONFIG = {
   // À corriger si tu changes le fichier son :
   //     ffprobe -v error -show_entries format=duration -of csv=p=0 seal.mp3
   syncCycleToMusic: true,
-  musicDuration: 2.6,        // secondes
+  musicDuration: 5.2,        // secondes — mesuré avec ffprobe
+
+  // Nombre de tours du sceau par boucle sonore. La mélodie dure 5,2 s et
+  // l'animation garde ses 2,6 s : 5,2 / 2 = 2,6. Ça laisse la mélodie
+  // respirer sans accélérer le sceau.
+  musicCycles: 2,
 
   // ---------------------------------------------------------------- astuces
   tipInterval: 8000,         // ms
