@@ -172,15 +172,27 @@ def main():
     open(os.path.join(ROOT, "assets", "img", "logo.svg"), "w", encoding="utf-8").write("\n".join(static))
 
     # ---- injection dans index.html ---------------------------------------
-    # --sp = amplitude de rotation de la pièce pendant l'éclatement.
-    # Les secteurs balaient large, les pièces du cœur beaucoup moins.
-    inline = []
+    # Les tracés vont dans <defs> et sont instanciés par <use>. Ça permet de
+    # répéter un secteur plusieurs fois sans dupliquer son « d » : les copies
+    # servent de traînée de flou de mouvement (voir .trail dans style.css).
+    TRAILS = 4
+
+    inline = ['        <defs>']
+    inline += ['          <path id="lp-%s" d="%s"/>' % (p["id"], p["d"]) for p in pieces]
+    inline.append('        </defs>')
+
     for n, p in enumerate(pieces):
-        sp = (26 if p["kind"] == "sector" else 11) * (1 if n % 2 == 0 else -1)
-        inline.append(
-            '        <g class="gp gp-%s" style="--dx:%s;--dy:%s;--sp:%ddeg;--i:%d">'
-            '<path id="lp-%s" d="%s"/></g>'
-            % (p["kind"], p["dx"], p["dy"], sp, n, p["id"], p["d"]))
+        head = ('        <g class="gp gp-%s" style="--dx:%s;--dy:%s;--i:%d">'
+                % (p["kind"], p["dx"], p["dy"], n))
+        if p["kind"] == "sector":
+            # Fantômes du plus lointain au plus proche : ils se dessinent
+            # sous la pièce nette, qui vient en dernier.
+            ghosts = "".join(
+                '<g class="trail trail-%d"><use href="#lp-%s"/></g>' % (k, p["id"])
+                for k in range(TRAILS, 0, -1))
+            inline.append(head + ghosts + '<use href="#lp-%s"/></g>' % p["id"])
+        else:
+            inline.append(head + '<use href="#lp-%s"/></g>' % p["id"])
 
     idx_path = os.path.join(ROOT, "index.html")
     html = open(idx_path, encoding="utf-8").read()

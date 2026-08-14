@@ -233,11 +233,10 @@ body {
 /* Le tour est TERMINÉ à 72 %, avant que la refermeture commence : les
    secteurs reviennent ensuite en ligne droite vers le centre, sans plus
    tourner. C'est ce qui évite l'impression de recomposition en plein tour.
-   Le flou est une animation séparée : il ne porte que sur `filter`, donc il
-   n'interfère pas avec l'interpolation de `transform`. */
+   Le flou de mouvement vit sur les .trail imbriqués, pas ici. */
 .gp-sector {
   --burst: 112px;
-  animation-name: sectorTurn, sectorBlur;
+  animation-name: sectorTurn;
 }
 
 @keyframes sectorTurn {
@@ -260,13 +259,35 @@ body {
   90%, 100% { transform: rotate(360deg); }
 }
 
-/* Flou de mouvement : nul à l'arrêt, maximal au plus vite de la révolution. */
-@keyframes sectorBlur {
-  0%,  10%  { filter: blur(0); }
-  26%       { filter: blur(4px); }
-  48%       { filter: blur(11px); }
-  68%       { filter: blur(4px); }
-  84%, 100% { filter: blur(0); }
+/* ---- flou de mouvement ------------------------------------------------- */
+
+/* Un flou gaussien étale dans toutes les directions : ça rend « flou », pas
+   « rapide ». Ici le mouvement est une rotation autour du centre, donc la
+   traînée doit suivre l'arc. Chaque secteur est répété quatre fois par <use>
+   et chaque copie est décalée EN ARRIÈRE le long de cette rotation, avec une
+   opacité dégressive — c'est l'étalement directionnel d'un vrai motion blur.
+
+   --k = rang du fantôme (1 = le plus proche), --a = son opacité maximale.
+   Ils restent constants : seuls l'angle et l'opacité sont animés. */
+.trail {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: trailSmear var(--cycle) infinite;
+}
+
+.trail-1 { --k: 1; --a: .42; }
+.trail-2 { --k: 2; --a: .26; }
+.trail-3 { --k: 3; --a: .14; }
+.trail-4 { --k: 4; --a: .07; }
+
+/* La traînée est nulle à l'arrêt et maximale au plus vite de la révolution :
+   sa longueur suit la vitesse, comme un vrai temps de pose. */
+@keyframes trailSmear {
+  0%,  12%  { transform: rotate(0deg); opacity: 0; }
+  26%       { transform: rotate(calc(var(--k) * -2.4deg)); opacity: calc(var(--a) * .55); }
+  48%       { transform: rotate(calc(var(--k) * -5.2deg)); opacity: var(--a); }
+  64%       { transform: rotate(calc(var(--k) * -2.4deg)); opacity: calc(var(--a) * .55); }
+  72%, 100% { transform: rotate(0deg); opacity: 0; }
 }
 
 /* Le cœur ne bouge pas : il s'efface simplement en fondu le temps du tour,
@@ -400,6 +421,7 @@ body.is-preview::after {
 
 /* Respecte le réglage système de réduction des animations */
 @media (prefers-reduced-motion: reduce) {
-  .wave span, .gp, .lg-all { animation: none; }
+  .wave span, .gp, .lg-all, .trail { animation: none; }
   .gp, .lg-all { transform: none; }
+  .trail { opacity: 0; }
 }
