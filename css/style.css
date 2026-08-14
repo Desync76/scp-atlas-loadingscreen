@@ -251,14 +251,11 @@ body {
   87%, 100% { transform: rotate(360deg); }
 }
 
-/* Dans la référence, le centre du sceau est VIDE pendant l'éclatement : il n'y
-   reste que les arcs et les flèches. Le cœur hexagonal n'a pas d'équivalent
-   là-bas — si on le fait éclater aussi loin que les arcs, les deux couches se
-   croisent et l'ensemble devient illisible. Il s'écarte donc à peine et
-   s'efface, ce qui dégage le centre comme dans la vidéo. */
+/* Le cœur ne bouge pas : il s'efface simplement en fondu le temps du tour,
+   puis revient en fondu. Le faire éclater en même temps que les secteurs
+   faisait se croiser les deux couches et rendait le centre illisible. */
 .gp-core {
-  --burst: 62px;
-  animation-name: coreBurst;
+  animation-name: coreFade;
 }
 
 @keyframes sealBurst {
@@ -287,27 +284,12 @@ body {
   87%, 100% { transform: none; }
 }
 
-@keyframes coreBurst {
-  0%, 9% {
-    transform: none; opacity: 1;
-    animation-timing-function: cubic-bezier(.16, .9, .28, 1);
-  }
-  16% { opacity: .7; }
-  26% {
-    transform: rotate(calc(var(--sp) * .6))
-               translate(calc(var(--dx) * var(--burst)),
-                         calc(var(--dy) * var(--burst)));
-    opacity: 0;
-  }
-  62% {
-    transform: rotate(var(--sp))
-               translate(calc(var(--dx) * var(--burst) * 1.3),
-                         calc(var(--dy) * var(--burst) * 1.3));
-    opacity: 0;
-    animation-timing-function: cubic-bezier(.55, 0, .18, 1);
-  }
-  78% { opacity: .55; }
-  87%, 100% { transform: none; opacity: 1; }
+/* Disparaît avant que le tour commence (26 %), revient une fois les secteurs
+   revenus (70 %). Aucune transformation : uniquement l'opacité. */
+@keyframes coreFade {
+  0%,  8%   { opacity: 1; animation-timing-function: ease-in;  }
+  22%, 72%  { opacity: 0; animation-timing-function: ease-out; }
+  90%, 100% { opacity: 1; }
 }
 
 /* ---- verrouillage à 100 % --------------------------------------------- */

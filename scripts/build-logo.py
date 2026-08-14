@@ -23,7 +23,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "assets", "img", "logo_source.png")
 
 VB, MARGIN, EPS = 1000.0, 24.0, 1.4
-CUT_W = 18          # largeur du trait de coupe, en pixels source
+# Largeur du trait de coupe, en pixels de l'image source. Il faut au moins
+# 3 px pour que deux pixels blancs de part et d'autre ne soient plus voisins
+# en connexité 8 — en dessous les secteurs restent soudés. Au-dessus, la
+# fente reste visible quand le sceau est refermé. 3 px de la source valent
+# environ un tiers de pixel à l'écran : la jointure est invisible au repos.
+CUT_W = 3
 
 
 def classify(bx, by, bw, bh, cx, cy):
@@ -125,7 +130,21 @@ def main():
                         "ang": math.degrees(math.atan2(vy, vx)) % 360})
         return out
 
-    sectors = collect(ringMask, "sector")
+    # Chaque secteur est redilaté de 2 px pour combler la saignée, puis
+    # réintersecté avec l'anneau d'origine. Les deux voisins se recouvrent
+    # donc au niveau de la coupe — la fente est invisible sceau refermé — et
+    # le clipping garantit que les bords intérieur et extérieur de la bande
+    # ne bougent pas d'un pixel.
+    n_s, lab_s, stats_s, _ = cv2.connectedComponentsWithStats(ringMask, 8)
+    k3 = np.ones((3, 3), np.uint8)
+    sectors = []
+    for li in range(1, n_s):
+        if stats_s[li, cv2.CC_STAT_AREA] < 3000:
+            continue
+        m = np.where(lab_s == li, 255, 0).astype(np.uint8)
+        grown = cv2.dilate(m, k3, iterations=9)
+        sectors += collect(cv2.bitwise_and(grown, ringFull), "sector")
+
     cores = collect(innerMask, "core")
     sectors.sort(key=lambda p: p["ang"])
 
