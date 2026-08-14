@@ -107,10 +107,12 @@
     if (!CFG.music) return;
 
     var sources = [].concat(CFG.music);
+    var vBase = CFG.musicVolume != null ? CFG.musicVolume : 0.12;
+
     var audio = document.createElement('audio');
     audio.loop = true;
     audio.preload = 'auto';
-    audio.volume = CFG.musicVolume != null ? CFG.musicVolume : 0.45;
+    audio.volume = vBase;
 
     sources.forEach(function (src) {
       var s = document.createElement('source');
@@ -162,6 +164,26 @@
     };
     play();
     document.addEventListener('click', play);
+
+    // Le son recule au fil du chargement. Le compte part de la première
+    // lecture effective, pas du chargement de la page : si l'autoplay est
+    // refusé et que le son démarre tard, l'atténuation ne doit pas être
+    // déjà terminée quand il se fait enfin entendre.
+    var vLate = CFG.musicVolumeLate;
+    if (vLate != null && vLate < vBase) {
+      audio.addEventListener('play', function () {
+        var t0 = Date.now();
+        var wait = (CFG.musicFadeStart || 15) * 1000;
+        var span = (CFG.musicFadeDuration || 25) * 1000;
+        var iv = setInterval(function () {
+          var el = Date.now() - t0 - wait;
+          if (el < 0) return;
+          var k = Math.min(1, el / span);
+          audio.volume = vBase + (vLate - vBase) * k;
+          if (k >= 1) clearInterval(iv);
+        }, 500);
+      }, { once: true });
+    }
   })();
 
   // -------------------------------------------------------------------- flux

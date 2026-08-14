@@ -24,7 +24,17 @@ window.LS_CONFIG = {
   // durée fausse. L'Ogg reste en second, comme filet si jamais le CEF de
   // GMod était compilé sans codec MP3. Mettre à null pour couper le son.
   music: ['assets/audio/seal.mp3', 'assets/audio/seal.ogg'],
-  musicVolume: 0.45,
+
+  // Volume de départ. Très bas volontairement : c'est une ambiance, pas un
+  // effet. Sur un chargement de deux minutes la boucle passe 46 fois.
+  musicVolume: 0.12,
+
+  // Et elle recule encore ensuite. Un niveau constant, même faible, devient
+  // pénible sur les chargements longs — surtout avec des téléchargements
+  // Workshop qui peuvent durer plusieurs minutes.
+  musicVolumeLate: 0.045,    // niveau final
+  musicFadeStart: 15,        // secondes avant que l'atténuation commence
+  musicFadeDuration: 25,     // durée de la descente
 
   // Un cycle du sceau = une boucle du son. La durée est écrite ici et fait
   // autorité : on ne la lit PAS depuis le lecteur audio, dont la mesure s'est
