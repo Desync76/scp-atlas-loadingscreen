@@ -29,7 +29,11 @@ if (-not (Test-Path $destDir)) {
 
 $cfg = Get-Content $src -Raw
 $cfg = [regex]::Replace($cfg, '(?m)^\s*sv_loadingurl\s+".*?"\s*$', "sv_loadingurl `"$Url`"")
-Set-Content -Path $dest -Value $cfg -Encoding utf8
+
+# UTF-8 SANS BOM. Set-Content -Encoding utf8 en ajoute un sous PowerShell 5.1,
+# et le moteur Source lit alors le marqueur comme une commande : la console
+# affiche Unknown command "" et la premiere ligne du fichier est perdue.
+[System.IO.File]::WriteAllText($dest, $cfg, (New-Object System.Text.UTF8Encoding($false)))
 
 Write-Host "server.cfg ecrit : $dest" -ForegroundColor Green
 Write-Host "sv_loadingurl -> $Url" -ForegroundColor Cyan

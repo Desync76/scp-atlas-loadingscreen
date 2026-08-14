@@ -74,7 +74,16 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-gmod-server.ps1
 Puis dans GMod (console `~`) :
 
 ```bash
-connect 127.0.0.1:27015
+connect 127.0.0.1:27016
+```
+
+Port **27016** et non 27015 : le client GMod occupe 27015 dès qu'il tourne, et
+le serveur ne peut alors pas s'y attacher.
+
+Vider le cache si l'écran reste bloqué sur une ancienne version :
+
+```bash
+powershell -Command "Remove-Item 'D:\SteamLibrary\steamapps\common\GarrysMod\garrysmod\cache\*' -Recurse -Force -ErrorAction SilentlyContinue"
 ```
 
 ---

@@ -6,7 +6,10 @@
 #>
 param(
     [string]$Map      = 'gm_construct',
-    [string]$Gamemode = 'sandbox'
+    [string]$Gamemode = 'sandbox',
+    # 27016 et pas 27015 : le client GMod occupe deja 27015 des qu'il tourne,
+    # et le serveur ne peut alors pas s'y attacher — il s'arrete aussitot.
+    [int]$Port        = 27016
 )
 
 $root  = Split-Path -Parent $PSScriptRoot
@@ -17,11 +20,14 @@ if (-not (Test-Path $srcds)) {
     exit 1
 }
 
-Write-Host "Demarrage : $Map / $Gamemode  -  connect 127.0.0.1:27015" -ForegroundColor Green
+Write-Host "Demarrage : $Map / $Gamemode  -  connect 127.0.0.1:$Port" -ForegroundColor Green
 
-& $srcds -console -game garrysmod `
+# -console exige une VRAIE console interactive : lance depuis un flux redirige,
+# srcds sort sur CTextConsoleWin32::GetLine et s'arrete. A garder au premier
+# plan dans un vrai terminal, ou a lancer via Start-Process (fenetre propre).
+& $srcds -console -condebug -game garrysmod `
     +map $Map `
     +gamemode $Gamemode `
     +maxplayers 8 `
     +sv_lan 1 `
-    -port 27015
+    -port $Port
