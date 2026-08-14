@@ -18,8 +18,8 @@
 
   --logo-size: clamp(210px, 25vw, 340px);
 
-  /* Cycle du sceau : éclatement → dérive → resserrement, en boucle */
-  --cycle: 3.4s;
+  /* Cycle du sceau : éclatement → tour complet → resserrement, en boucle */
+  --cycle: 4.4s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -221,7 +221,35 @@ body {
   animation: sealBurst var(--cycle) infinite;
 }
 
-.gp-sector { --burst: 112px; }
+/* Les trois secteurs s'écartent, font UN TOUR COMPLET autour du centre, puis
+   se resserrent. 360° = identité : chaque secteur retombe exactement à sa
+   place, le sceau ne peut pas se reformer de travers.
+   Ils tournent tous dans le même sens à la même vitesse, donc leur écart de
+   120° est conservé — ils ne peuvent pas se rattraper ni se croiser. */
+.gp-sector {
+  --burst: 112px;
+  animation-name: sectorTurn;
+}
+
+@keyframes sectorTurn {
+  0%, 9% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(.16, .9, .28, 1);
+  }
+  26% {
+    transform: rotate(22deg)
+               translate(calc(var(--dx) * var(--burst)),
+                         calc(var(--dy) * var(--burst)));
+    animation-timing-function: cubic-bezier(.45, 0, .55, 1);
+  }
+  70% {
+    transform: rotate(338deg)
+               translate(calc(var(--dx) * var(--burst) * 1.1),
+                         calc(var(--dy) * var(--burst) * 1.1));
+    animation-timing-function: cubic-bezier(.55, 0, .18, 1);
+  }
+  87%, 100% { transform: rotate(360deg); }
+}
 
 /* Dans la référence, le centre du sceau est VIDE pendant l'éclatement : il n'y
    reste que les arcs et les flèches. Le cœur hexagonal n'a pas d'équivalent
