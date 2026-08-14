@@ -144,15 +144,24 @@
     // Au démarrage effectif du son, on réaligne l'animation sur lui.
     audio.addEventListener('play', restartSealAnimations, { once: true });
 
-    // La lecture automatique peut être refusée sans geste utilisateur. On
-    // tente, et on retente au premier clic — utile en preview navigateur.
-    // L'animation, elle, tourne de toute façon : elle ne dépend pas du son.
+    // La lecture automatique est refusée sans geste utilisateur : mesuré sur
+    // le serveur local, play() rejette avec NotAllowedError. On retente donc
+    // au premier clic, et on marque le body pour que la preview l'affiche.
+    // En jeu aucun clic n'est possible : si le CEF de GMod applique la même
+    // politique, le son ne partira pas. L'animation, elle, ne dépend pas de
+    // l'audio et tourne dans tous les cas.
     var play = function () {
       var p = audio.play();
-      if (p && p.catch) p.catch(function () {});
+      if (p && p.then) {
+        p.then(function () {
+          document.body.classList.remove('audio-blocked');
+        }).catch(function () {
+          document.body.classList.add('audio-blocked');
+        });
+      }
     };
     play();
-    document.addEventListener('click', play, { once: true });
+    document.addEventListener('click', play);
   })();
 
   // -------------------------------------------------------------------- flux

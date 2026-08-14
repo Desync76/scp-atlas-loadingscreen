@@ -407,6 +407,25 @@ body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
 
 /* ----------------------------------------------------------------- preview */
 
+/* Signalé uniquement en preview navigateur : en jeu aucun clic n'est
+   possible, l'indication n'aurait aucun sens. */
+body.is-preview.audio-blocked::before {
+  content: 'SON BLOQUÉ PAR LE NAVIGATEUR — CLIQUE POUR L\'ACTIVER';
+  position: fixed;
+  z-index: 10;
+  top: 40px;
+  right: 12px;
+  padding: 5px 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: .14em;
+  color: #ffd479;
+  background: rgba(255, 190, 60, .10);
+  border: 1px solid rgba(255, 190, 60, .35);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
 body.is-preview::after {
   content: 'PREVIEW NAVIGATEUR — DONNÉES SIMULÉES';
   position: fixed;
