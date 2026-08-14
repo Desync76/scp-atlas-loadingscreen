@@ -15,24 +15,14 @@ window.LS_CONFIG = {
   background: null,          // ex: 'assets/img/bg.jpg' — sinon dégradé noir
 
   // ------------------------------------------------------------------- son
-  // Plusieurs sources : le navigateur prend la première qu'il sait lire.
-  // Le MP3 est en tête et c'est délibéré. Il porte son nombre de trames dans
-  // un en-tête placé au DÉBUT du fichier, donc sa durée est connue dès les
-  // premiers octets. Un Ogg oblige le lecteur à aller lire la dernière page
-  // du fichier, ce qui suppose que le serveur accepte les requêtes Range —
-  // le serveur Python local ne les gère pas, et Chrome annonce alors une
-  // durée fausse. L'Ogg reste en second, comme filet si jamais le CEF de
-  // GMod était compilé sans codec MP3. Mettre à null pour couper le son.
-  music: ['assets/audio/seal.mp3', 'assets/audio/seal.ogg'],
+  // AUCUN SON. Pour en remettre un plus tard : poser ici le ou les chemins
+  // des fichiers, par exemple ['assets/audio/mon-son.mp3'], puis renseigner
+  // musicDuration avec sa durée exacte :
+  //     ffprobe -v error -show_entries format=duration -of csv=p=0 mon-son.mp3
+  music: null,
 
-  // Volume de départ. Très bas volontairement : c'est une ambiance, pas un
-  // effet. Ajoute ?vol=0.6 à l'URL pour tester fort sans toucher à ceci.
-  musicVolume: 0.1,
-
-  // Et elle recule encore ensuite. Un niveau constant, même faible, devient
-  // pénible sur les chargements longs — surtout avec des téléchargements
-  // Workshop qui peuvent durer plusieurs minutes.
-  musicVolumeLate: 0.045,    // niveau final
+  musicVolume: 0.1,          // ?vol=0.6 dans l'URL pour tester plus fort
+  musicVolumeLate: 0.045,    // niveau après atténuation (null = pas d'atténuation)
   musicFadeStart: 15,        // secondes avant que l'atténuation commence
   musicFadeDuration: 25,     // durée de la descente
 
@@ -41,13 +31,10 @@ window.LS_CONFIG = {
   // révélée peu fiable selon le format et le serveur (voir ci-dessus).
   // À corriger si tu changes le fichier son :
   //     ffprobe -v error -show_entries format=duration -of csv=p=0 seal.mp3
+  // Sans son, le cycle du sceau vient de --cycle dans css/style.css (2,6 s).
   syncCycleToMusic: true,
-  musicDuration: 5.2,        // secondes — mesuré avec ffprobe
-
-  // Nombre de tours du sceau par boucle sonore. La mélodie dure 5,2 s et
-  // l'animation garde ses 2,6 s : 5,2 / 2 = 2,6. Ça laisse la mélodie
-  // respirer sans accélérer le sceau.
-  musicCycles: 2,
+  musicDuration: null,       // durée du son, en secondes
+  musicCycles: 1,            // nombre de tours du sceau par boucle sonore
 
   // ---------------------------------------------------------------- astuces
   tipInterval: 8000,         // ms
