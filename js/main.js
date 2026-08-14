@@ -94,12 +94,63 @@
 
   // ----------------------------------------------------------------- musique
 
+  /** Relance toutes les animations du sceau depuis leur début. */
+  function restartSealAnimations() {
+    var els = document.querySelectorAll('.lg-all, .gp, .trail');
+    var i;
+    for (i = 0; i < els.length; i++) els[i].style.animation = 'none';
+    void document.body.offsetWidth;            // force un reflow
+    for (i = 0; i < els.length; i++) els[i].style.animation = '';
+  }
+
   (function initMusic() {
     if (!CFG.music) return;
-    var audio = new Audio(CFG.music);
+
+    var sources = [].concat(CFG.music);
+    var audio = document.createElement('audio');
     audio.loop = true;
-    audio.volume = CFG.musicVolume != null ? CFG.musicVolume : 0.3;
-    var play = function () { audio.play().catch(function () {}); };
+    audio.preload = 'auto';
+    audio.volume = CFG.musicVolume != null ? CFG.musicVolume : 0.45;
+
+    sources.forEach(function (src) {
+      var s = document.createElement('source');
+      s.src = src;
+      if (/\.ogg$/i.test(src)) s.type = 'audio/ogg';
+      else if (/\.mp3$/i.test(src)) s.type = 'audio/mpeg';
+      audio.appendChild(s);
+    });
+    document.body.appendChild(audio);
+
+    // Un cycle du sceau = une boucle du son.
+    var applied = 0;
+
+    function setCycle(d) {
+      if (!isFinite(d) || d < 0.5 || d > 30) return;      // garde-fou
+      if (Math.abs(d - applied) < 0.02) return;           // rien de neuf
+      applied = d;
+      document.documentElement.style.setProperty('--cycle', d.toFixed(3) + 's');
+      restartSealAnimations();
+    }
+
+    // La durée vient de config.js, jamais de audio.duration : mesuré ici,
+    // Chrome annonce 2,600 s pour le MP3 mais 1,986 s pour le même son en
+    // Ogg Vorbis, faute de pouvoir lire la fin du fichier sur un serveur qui
+    // ne gère pas les requêtes Range. Se caler là-dessus rendrait la synchro
+    // dépendante du format ET du serveur.
+    if (CFG.syncCycleToMusic && CFG.musicDuration) {
+      setCycle(CFG.musicDuration);
+    }
+
+    // Au démarrage effectif du son, on réaligne l'animation sur lui.
+    audio.addEventListener('play', restartSealAnimations, { once: true });
+
+    // La lecture automatique peut être refusée sans geste utilisateur. On
+    // tente, et on retente au premier clic — utile en preview navigateur.
+    // L'animation, elle, tourne de toute façon : elle ne dépend pas du son.
+    var play = function () {
+      var p = audio.play();
+      if (p && p.catch) p.catch(function () {});
+    };
     play();
     document.addEventListener('click', play, { once: true });
   })();

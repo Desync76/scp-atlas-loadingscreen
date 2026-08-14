@@ -18,8 +18,10 @@
 
   --logo-size: clamp(210px, 25vw, 340px);
 
-  /* Cycle du sceau : éclatement → tour complet → resserrement, en boucle */
-  --cycle: 4.4s;
+  /* Cycle du sceau : éclatement → tour complet → resserrement, en boucle.
+     Valeur de repli : main.js la remplace par la durée exacte du son dès que
+     ses métadonnées sont lues, pour qu'un cycle = une boucle sonore. */
+  --cycle: 2.6s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

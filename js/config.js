@@ -13,8 +13,26 @@ window.LS_CONFIG = {
 
   // ------------------------------------------------------------------ fond
   background: null,          // ex: 'assets/img/bg.jpg' — sinon dégradé noir
-  music: null,               // ex: 'assets/audio/ambient.mp3'
-  musicVolume: 0.3,
+
+  // ------------------------------------------------------------------- son
+  // Plusieurs sources : le navigateur prend la première qu'il sait lire.
+  // Le MP3 est en tête et c'est délibéré. Il porte son nombre de trames dans
+  // un en-tête placé au DÉBUT du fichier, donc sa durée est connue dès les
+  // premiers octets. Un Ogg oblige le lecteur à aller lire la dernière page
+  // du fichier, ce qui suppose que le serveur accepte les requêtes Range —
+  // le serveur Python local ne les gère pas, et Chrome annonce alors une
+  // durée fausse. L'Ogg reste en second, comme filet si jamais le CEF de
+  // GMod était compilé sans codec MP3. Mettre à null pour couper le son.
+  music: ['assets/audio/seal.mp3', 'assets/audio/seal.ogg'],
+  musicVolume: 0.45,
+
+  // Un cycle du sceau = une boucle du son. La durée est écrite ici et fait
+  // autorité : on ne la lit PAS depuis le lecteur audio, dont la mesure s'est
+  // révélée peu fiable selon le format et le serveur (voir ci-dessus).
+  // À corriger si tu changes le fichier son :
+  //     ffprobe -v error -show_entries format=duration -of csv=p=0 seal.mp3
+  syncCycleToMusic: true,
+  musicDuration: 2.6,        // secondes
 
   // ---------------------------------------------------------------- astuces
   tipInterval: 8000,         // ms
