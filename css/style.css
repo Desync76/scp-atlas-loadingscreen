@@ -200,11 +200,14 @@ body {
   animation: sealZoom var(--cycle) infinite;
 }
 
+/* Les trois animations partagent EXACTEMENT les mêmes instants de bascule —
+   8 %, 24 %, 72 %, 90 % — sinon leurs accélérations se contrarient et le
+   mouvement paraît saccadé alors que chaque courbe est pourtant lisse. */
 @keyframes sealZoom {
-  0%,  9%  { transform: scale(1);    animation-timing-function: cubic-bezier(.16, .9, .28, 1); }
-  26%      { transform: scale(1.11); animation-timing-function: ease-in-out; }
-  58%      { transform: scale(1.16); animation-timing-function: cubic-bezier(.55, 0, .18, 1); }
-  87%,100% { transform: scale(1); }
+  0%,  8%  { transform: scale(1);    animation-timing-function: cubic-bezier(.25, .8, .35, 1); }
+  24%      { transform: scale(1.10); animation-timing-function: linear; }
+  72%      { transform: scale(1.14); animation-timing-function: cubic-bezier(.35, 0, .15, 1); }
+  90%,100% { transform: scale(1); }
 }
 
 /* Chaque pièce porte --dx / --dy (sa direction depuis le centre) et --sp
@@ -218,7 +221,8 @@ body {
 .gp {
   transform-box: view-box;
   transform-origin: center;
-  animation: sealBurst var(--cycle) infinite;
+  animation-duration: var(--cycle);
+  animation-iteration-count: infinite;
 }
 
 /* Les trois secteurs s'écartent, font UN TOUR COMPLET autour du centre, puis
@@ -226,29 +230,43 @@ body {
    place, le sceau ne peut pas se reformer de travers.
    Ils tournent tous dans le même sens à la même vitesse, donc leur écart de
    120° est conservé — ils ne peuvent pas se rattraper ni se croiser. */
+/* Le tour est TERMINÉ à 72 %, avant que la refermeture commence : les
+   secteurs reviennent ensuite en ligne droite vers le centre, sans plus
+   tourner. C'est ce qui évite l'impression de recomposition en plein tour.
+   Le flou est une animation séparée : il ne porte que sur `filter`, donc il
+   n'interfère pas avec l'interpolation de `transform`. */
 .gp-sector {
   --burst: 112px;
-  animation-name: sectorTurn;
+  animation-name: sectorTurn, sectorBlur;
 }
 
 @keyframes sectorTurn {
-  0%, 9% {
+  0%, 8% {
     transform: rotate(0deg);
-    animation-timing-function: cubic-bezier(.16, .9, .28, 1);
+    animation-timing-function: cubic-bezier(.25, .8, .35, 1);
   }
-  26% {
-    transform: rotate(22deg)
+  24% {
+    transform: rotate(28deg)
                translate(calc(var(--dx) * var(--burst)),
                          calc(var(--dy) * var(--burst)));
-    animation-timing-function: cubic-bezier(.45, 0, .55, 1);
+    animation-timing-function: cubic-bezier(.42, 0, .58, 1);
   }
-  70% {
-    transform: rotate(338deg)
-               translate(calc(var(--dx) * var(--burst) * 1.1),
-                         calc(var(--dy) * var(--burst) * 1.1));
-    animation-timing-function: cubic-bezier(.55, 0, .18, 1);
+  72% {
+    transform: rotate(360deg)
+               translate(calc(var(--dx) * var(--burst)),
+                         calc(var(--dy) * var(--burst)));
+    animation-timing-function: cubic-bezier(.35, 0, .15, 1);
   }
-  87%, 100% { transform: rotate(360deg); }
+  90%, 100% { transform: rotate(360deg); }
+}
+
+/* Flou de mouvement : nul à l'arrêt, maximal au plus vite de la révolution. */
+@keyframes sectorBlur {
+  0%,  10%  { filter: blur(0); }
+  26%       { filter: blur(4px); }
+  48%       { filter: blur(11px); }
+  68%       { filter: blur(4px); }
+  84%, 100% { filter: blur(0); }
 }
 
 /* Le cœur ne bouge pas : il s'efface simplement en fondu le temps du tour,
@@ -258,37 +276,11 @@ body {
   animation-name: coreFade;
 }
 
-@keyframes sealBurst {
-  0%, 9% {
-    transform: none;
-    animation-timing-function: cubic-bezier(.16, .9, .28, 1);
-  }
-  26% {
-    transform: rotate(calc(var(--sp) * .55))
-               translate(calc(var(--dx) * var(--burst)),
-                         calc(var(--dy) * var(--burst)));
-    animation-timing-function: ease-in-out;
-  }
-  46% {
-    transform: rotate(var(--sp))
-               translate(calc(var(--dx) * var(--burst) * 1.2),
-                         calc(var(--dy) * var(--burst) * 1.2));
-    animation-timing-function: ease-in-out;
-  }
-  62% {
-    transform: rotate(calc(var(--sp) * .4))
-               translate(calc(var(--dx) * var(--burst) * .9),
-                         calc(var(--dy) * var(--burst) * .9));
-    animation-timing-function: cubic-bezier(.55, 0, .18, 1);
-  }
-  87%, 100% { transform: none; }
-}
-
-/* Disparaît avant que le tour commence (26 %), revient une fois les secteurs
-   revenus (70 %). Aucune transformation : uniquement l'opacité. */
+/* Disparaît avant que le tour commence (24 %), revient une fois les secteurs
+   revenus (72 %). Aucune transformation : uniquement l'opacité. */
 @keyframes coreFade {
-  0%,  8%   { opacity: 1; animation-timing-function: ease-in;  }
-  22%, 72%  { opacity: 0; animation-timing-function: ease-out; }
+  0%,  8%   { opacity: 1; animation-timing-function: cubic-bezier(.4, 0, .8, .4); }
+  24%, 72%  { opacity: 0; animation-timing-function: cubic-bezier(.2, .6, .4, 1); }
   90%, 100% { opacity: 1; }
 }
 
