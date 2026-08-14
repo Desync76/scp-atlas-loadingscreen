@@ -109,6 +109,13 @@
     var sources = [].concat(CFG.music);
     var vBase = CFG.musicVolume != null ? CFG.musicVolume : 0.12;
 
+    // Surcharge de test : ?vol=0.6 dans l'URL monte le son pour juger le
+    // rendu, sans toucher au réglage de config.js. Elle désactive aussi
+    // l'atténuation progressive, sinon le son redescendrait pendant l'écoute.
+    var override = parseFloat(G.params.vol);
+    var testing = isFinite(override) && override >= 0 && override <= 1;
+    if (testing) vBase = override;
+
     var audio = document.createElement('audio');
     audio.loop = true;
     audio.preload = 'auto';
@@ -169,7 +176,7 @@
     // lecture effective, pas du chargement de la page : si l'autoplay est
     // refusé et que le son démarre tard, l'atténuation ne doit pas être
     // déjà terminée quand il se fait enfin entendre.
-    var vLate = CFG.musicVolumeLate;
+    var vLate = testing ? null : CFG.musicVolumeLate;
     if (vLate != null && vLate < vBase) {
       audio.addEventListener('play', function () {
         var t0 = Date.now();
