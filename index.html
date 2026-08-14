@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SCP Atlas — Chargement</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap">
-
+<!-- Polices servies en local : aucune dépendance réseau externe, donc aucun
+     risque que la typographie retombe silencieusement sur une police système
+     si le CEF de GMod bloque ou ralentit la requête vers Google Fonts.
+     Régénérer avec : python scripts/fetch-fonts.py -->
+<link rel="stylesheet" href="assets/fonts/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -83,6 +84,9 @@
       <div class="tip-bar"></div>
       <p class="tip-text" id="tip"></p>
     </div>
+
+    <!-- ── Fil de progression, tout en bas de l'écran ─────────────── -->
+    <div class="bar"><div class="bar-fill" id="bar-fill"></div></div>
 
   </main>
 

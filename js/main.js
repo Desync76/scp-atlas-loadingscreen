@@ -16,6 +16,7 @@
     gamemode: $('gamemode'),
     mapline:  $('mapline'),
     feed:     $('feed'),
+    bar:      $('bar-fill'),
     wave:     $('wave'),
     progress: $('progress-text'),
     status:   $('status'),
@@ -78,11 +79,22 @@
       var t = order[i]; order[i] = order[j]; order[j] = t;
     }
 
+    // Met en valeur les désignations : SCP-173, SCP-074-ATLAS, SCP-939-1...
+    // On échappe le texte avant d'injecter, pour qu'une astuce ne puisse
+    // jamais introduire de balise.
+    function markup(str) {
+      return str
+        .replace(/[&<>]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
+        })
+        .replace(/\bSCP-[0-9]+(?:-[A-Z0-9]+)*\b/g, '<span class="scp">$&</span>');
+    }
+
     var idx = 0;
     function show() {
       el.tip.classList.remove('is-visible');
       setTimeout(function () {
-        el.tip.textContent = order[idx % order.length];
+        el.tip.innerHTML = markup(order[idx % order.length]);
         el.tip.classList.add('is-visible');
         idx++;
       }, 400);
@@ -230,7 +242,9 @@
     displayed += (target - displayed) * 0.12;
     if (Math.abs(target - displayed) < 0.0005) displayed = target;
 
-    el.progress.textContent = Math.round(displayed * 100) + ' %';
+    var pct = Math.round(displayed * 100);
+    el.progress.textContent = pct + ' %';
+    el.bar.style.width = pct + '%';
 
     // À 100 %, la rotation s'arrête et le sceau marque le verrouillage.
     if (!locked && target >= 0.999) {

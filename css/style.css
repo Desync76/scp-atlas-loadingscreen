@@ -11,6 +11,13 @@
   --c-faint:   rgba(255, 255, 255, .28);
   --c-surface: rgba(255, 255, 255, .07);
 
+  /* Couleur d'accent : ambre de danger industriel. Employée avec parcimonie —
+     le nom du serveur, la barre d'astuce, les désignations SCP, la barre de
+     progression. Tout le reste reste blanc : c'est la rareté de l'accent qui
+     lui donne sa force. Mettre --c-accent à #fff pour revenir au monochrome. */
+  --c-accent:  #e39a21;
+  --c-accent-d: rgba(227, 154, 33, .28);
+
   --font-display: 'Barlow Condensed', 'Oswald', 'Arial Narrow', sans-serif;
   --font-body:    'Barlow', 'Segoe UI', system-ui, sans-serif;
 
@@ -85,7 +92,10 @@ body {
   text-transform: uppercase;
 }
 
-.head-title b { font-weight: 700; }
+.head-title b {
+  font-weight: 700;
+  color: var(--c-accent);
+}
 
 .head-sub {
   margin-top: 3px;
@@ -387,7 +397,15 @@ body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
 .tip-bar {
   flex: none;
   width: 3px;
-  background: #fff;
+  background: var(--c-accent);
+}
+
+/* Les désignations SCP ressortent dans le texte : l'œil accroche le code
+   avant même de lire la phrase. Le balisage est posé par main.js. */
+.tip-text .scp {
+  color: var(--c-accent);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .tip-text {
@@ -403,6 +421,29 @@ body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
 .tip-text.is-visible {
   opacity: 1;
   transform: none;
+}
+
+/* ------------------------------------------------- fil de progression */
+
+/* Placé sur l'arête basse de l'écran plutôt qu'autour du sceau : tu voulais
+   le centre dégagé, mais sans repère visuel un téléchargement Workshop de
+   deux minutes donne l'impression que l'écran a planté. Deux pixels suffisent
+   à lever le doute sans rien encombrer. */
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, .07);
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--c-accent);
+  box-shadow: 0 0 10px var(--c-accent-d);
+  transition: width .25s linear;
 }
 
 /* ----------------------------------------------------------------- preview */
