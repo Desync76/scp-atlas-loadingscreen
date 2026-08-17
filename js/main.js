@@ -45,6 +45,36 @@
     return name.length > 34 ? name.slice(0, 33) + '…' : name;
   }
 
+  // -------------------------------------------------------------- diagnostic
+  // ?debug=1 affiche ce que le moteur sait réellement faire. Le navigateur de
+  // GMod est un Chromium ancien dont la version exacte n'est pas documentée :
+  // plutôt que de supposer, on lui demande. À utiliser dès qu'un rendu diffère
+  // entre le navigateur et le jeu.
+  // En jeu, ?debug=1 est inutilisable : le moteur accole lui-même ses
+  // paramètres à l'URL et deux « ? » la casseraient. D'où l'option de config.
+  if (G.params.debug === '1' || CFG.debug) {
+    var sup = function (prop, val) {
+      var ok = window.CSS && CSS.supports && CSS.supports(prop, val);
+      return (ok ? '[ok]  ' : '[NON] ') + prop + ': ' + val;
+    };
+    var box = document.createElement('pre');
+    box.style.cssText = 'position:fixed;z-index:99;right:8px;bottom:8px;margin:0;' +
+      'padding:10px 12px;background:rgba(0,0,0,.85);border:1px solid #e8453c;' +
+      'font:11px/1.5 monospace;color:#fff;white-space:pre;text-align:left';
+    box.textContent = [
+      navigator.userAgent,
+      'viewport  ' + window.innerWidth + ' x ' + window.innerHeight +
+        '   dpr ' + (window.devicePixelRatio || 1),
+      sup('inset', '0'),
+      sup('width', 'clamp(1px, 1vw, 2px)'),
+      sup('width', 'min(1px, 2px)'),
+      sup('gap', '1px'),
+      sup('place-items', 'center'),
+      sup('transform-box', 'fill-box')
+    ].join('\n');
+    document.body.appendChild(box);
+  }
+
   // ------------------------------------------------------------------- fond
 
   if (CFG.background) {

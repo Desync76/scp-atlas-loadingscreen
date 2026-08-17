@@ -27,14 +27,29 @@
   --font-display: 'Barlow Condensed', 'Oswald', 'Arial Narrow', sans-serif;
   --font-body:    'Barlow', 'Segoe UI', system-ui, sans-serif;
 
-  --pad: clamp(22px, 2.6vw, 46px);
+  /* Valeurs fixes par défaut, remplacées plus bas par des versions fluides
+     si le moteur sait faire du clamp(). Un simple repli ne marcherait pas
+     ici : une propriété personnalisée accepte n'importe quelle suite de
+     jetons, donc `clamp(...)` y serait stocké même sans être compris, et
+     l'erreur ne ressortirait qu'à l'utilisation — en annulant la propriété. */
+  --pad: 40px;
 
-  --logo-size: clamp(210px, 25vw, 340px);
+  --logo-size: 300px;
 
   /* Cycle du sceau : éclatement → tour complet → resserrement, en boucle.
      Valeur de repli : main.js la remplace par la durée exacte du son dès que
      ses métadonnées sont lues, pour qu'un cycle = une boucle sonore. */
   --cycle: 2.6s;
+}
+
+/* Versions fluides, appliquées uniquement si le moteur sait faire du clamp().
+   Sur le CEF de GMod, si le test échoue, les valeurs fixes ci-dessus tiennent
+   et la mise en page reste correcte — simplement non fluide. */
+@supports (width: clamp(1px, 1vw, 2px)) {
+  :root {
+    --pad: clamp(22px, 2.6vw, 46px);
+    --logo-size: clamp(210px, 25vw, 340px);
+  }
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -57,9 +72,14 @@ body {
 
 /* ------------------------------------------------------------------- fond */
 
+/* ATTENTION — pas de `inset: 0` dans ce fichier, et c'est délibéré.
+   Le navigateur intégré de Garry's Mod est un Chromium plus ancien que la
+   version 87 : il ignore purement et simplement `inset`, les quatre décalages
+   retombent sur `auto`, et toute la mise en page se tasse en haut à gauche.
+   On écrit donc top/right/bottom/left en toutes lettres, partout. */
 .bg {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   z-index: 0;
   background: radial-gradient(circle at 50% 46%, #0b0b0c 0%, #000 68%);
   background-size: cover;
@@ -68,7 +88,7 @@ body {
 
 .vignette {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   z-index: 1;
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, .75) 100%);
@@ -76,7 +96,7 @@ body {
 
 .screen {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   z-index: 2;
 }
 
@@ -91,6 +111,7 @@ body {
 
 .head-title {
   font-family: var(--font-display);
+  font-size: 21px;
   font-size: clamp(21px, 1.9vw, 32px);
   font-weight: 400;
   line-height: 1.05;
@@ -106,6 +127,7 @@ body {
 .head-sub {
   margin-top: 3px;
   font-family: var(--font-display);
+  font-size: 13px;
   font-size: clamp(13px, 1.05vw, 17px);
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -115,6 +137,7 @@ body {
 .head-desc {
   margin-top: 2px;
   font-family: var(--font-display);
+  font-size: 11px;
   font-size: clamp(11px, .85vw, 14px);
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -128,21 +151,27 @@ body {
   left: var(--pad);
   top: 50%;
   transform: translateY(-50%);
-  width: min(330px, 28vw);
+  width: 28vw;
+  width: min(330px, 28vw);   /* la ligne au-dessus sert de repli si min() manque */
   display: flex;
   flex-direction: column;
-  gap: 7px;
 }
 
+/* Espacement par marges et non par `gap` : le gap en flexbox demande
+   Chromium 84, hors de portée du navigateur de GMod. Les marges marchent
+   partout. Même raison pour .feed-ico, .foot-meta et .tip plus bas. */
 .feed-row {
   display: flex;
   align-items: center;
-  gap: 9px;
+  margin-bottom: 7px;
   animation: rowIn .45s cubic-bezier(.2, .8, .3, 1) both;
 }
 
+.feed-row:last-child { margin-bottom: 0; }
+
 .feed-ico {
   flex: none;
+  margin-right: 9px;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -191,7 +220,7 @@ body {
 
 .loader {
   position: absolute;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   display: grid;
   place-items: center;
   transform: translateY(-4vh);
@@ -353,6 +382,7 @@ body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
 
 .wave {
   font-family: var(--font-display);
+  font-size: 16px;
   font-size: clamp(16px, 1.35vw, 22px);
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -374,13 +404,14 @@ body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   font-family: var(--font-display);
   font-size: 12px;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--c-faint);
 }
+
+.foot-meta > * + * { margin-left: 10px; }
 
 .sep {
   width: 3px;
@@ -396,13 +427,14 @@ body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
   left: var(--pad);
   bottom: var(--pad);
   display: flex;
-  gap: 15px;
+  max-width: 46vw;
   max-width: min(52ch, 46vw);
 }
 
 .tip-bar {
   flex: none;
   width: 3px;
+  margin-right: 15px;
   background: var(--c-accent);
 }
 
@@ -415,6 +447,7 @@ body.is-ready .logo { animation: lockFlash .8s cubic-bezier(.2, .8, .3, 1) both;
 }
 
 .tip-text {
+  font-size: 14px;
   font-size: clamp(14px, 1.02vw, 17px);
   font-weight: 400;
   line-height: 1.45;

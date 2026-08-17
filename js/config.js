@@ -88,5 +88,11 @@ window.LS_CONFIG = {
   ],
 
   // Faux chargement quand la page est ouverte hors du jeu
-  devSimulation: true
+  devSimulation: true,
+
+  // Panneau de diagnostic en bas à droite : version du moteur, taille du
+  // viewport, et ce que le CSS supporte réellement. À passer à true, pousser,
+  // se reconnecter et faire une capture quand un rendu diffère entre le
+  // navigateur et le jeu. En navigateur, ?debug=1 fait la même chose.
+  debug: false
 };
