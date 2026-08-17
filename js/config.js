@@ -15,26 +15,35 @@ window.LS_CONFIG = {
   background: null,          // ex: 'assets/img/bg.jpg' — sinon dégradé noir
 
   // ------------------------------------------------------------------- son
-  // AUCUN SON. Pour en remettre un plus tard : poser ici le ou les chemins
-  // des fichiers, par exemple ['assets/audio/mon-son.mp3'], puis renseigner
-  // musicDuration avec sa durée exacte :
-  //     ffprobe -v error -show_entries format=duration -of csv=p=0 mon-son.mp3
-  music: null,
+  // Le navigateur prend la première source qu'il sait lire. Le MP3 est en
+  // tête par sécurité, l'Ogg suit — trois fois plus léger à qualité égale.
+  // Générés depuis le WAV d'origine (18,8 Mo, inutilisable tel quel sur le
+  // web) par :
+  //     ffmpeg -i source.wav -ac 1 -c:a libmp3lame -b:a 112k music.mp3
+  //     ffmpeg -i source.wav -ac 1 -c:a libvorbis  -q:a 2    music.ogg
+  music: ['assets/audio/music.mp3', 'assets/audio/music.ogg'],
 
-  musicVolume: 0.1,          // ?vol=0.6 dans l'URL pour tester plus fort
-  musicVolumeLate: 0.045,    // niveau après atténuation (null = pas d'atténuation)
-  musicFadeStart: 15,        // secondes avant que l'atténuation commence
-  musicFadeDuration: 25,     // durée de la descente
+  // Bien plus haut que les 0.1 d'avant, et ce n'est pas arbitraire : ce
+  // morceau est mesuré à -25,4 dB de niveau moyen, environ 15 dB sous le
+  // bruitage court utilisé précédemment. À 0.1 il serait inaudible.
+  musicVolume: 0.35,
+  musicVolumeLate: 0.18,     // niveau après atténuation (null = pas d'atténuation)
+  musicFadeStart: 20,        // secondes avant que l'atténuation commence
+  musicFadeDuration: 30,     // durée de la descente
 
   // Un cycle du sceau = une boucle du son. La durée est écrite ici et fait
   // autorité : on ne la lit PAS depuis le lecteur audio, dont la mesure s'est
   // révélée peu fiable selon le format et le serveur (voir ci-dessus).
   // À corriger si tu changes le fichier son :
   //     ffprobe -v error -show_entries format=duration -of csv=p=0 seal.mp3
-  // Sans son, le cycle du sceau vient de --cycle dans css/style.css (2,6 s).
-  syncCycleToMusic: true,
-  musicDuration: null,       // durée du son, en secondes
-  musicCycles: 1,            // nombre de tours du sceau par boucle sonore
+  // DÉSACTIVÉ, et c'est voulu. Ce réglage cale la durée d'un tour du sceau
+  // sur celle du son — pertinent pour une boucle courte de 2 ou 3 secondes,
+  // absurde ici : le morceau dure 3 min 44, un tour de sceau durerait donc
+  // 224 secondes. L'animation garde ses 2,6 s (--cycle dans css/style.css)
+  // et la musique se déroule de son côté, indépendamment.
+  syncCycleToMusic: false,
+  musicDuration: null,
+  musicCycles: 1,
 
   // ---------------------------------------------------------------- astuces
   tipInterval: 8000,         // ms
